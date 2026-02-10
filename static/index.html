@@ -5,795 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="AI Community Club by Voicyfy — закрытое сообщество для предпринимателей, которые внедряют AI в бизнес">
     <title>AI Community Club by Voicyfy</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <style>
-        /* ===== Reset & Base ===== */
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-                         Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #0f172a;
-            color: #f1f5f9;
-            line-height: 1.6;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        button {
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-family: inherit;
-            font-size: inherit;
-        }
-
-        input {
-            font-family: inherit;
-            font-size: inherit;
-        }
-
-        /* ===== Utility ===== */
-        .container {
-            max-width: 1140px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.75rem;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 0.5rem;
-            transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-        }
-
-        .btn-primary:hover {
-            opacity: 0.92;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-outline {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.75rem;
-            background: transparent;
-            color: #e2e8f0;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            transition: border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .btn-outline:hover {
-            border-color: #7c3aed;
-            background: rgba(124, 58, 237, 0.08);
-        }
-
-        .section-title {
-            font-size: 2.25rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto 3rem;
-        }
-
-        /* ===== Navbar ===== */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-        }
-
-        .navbar__inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 4rem;
-        }
-
-        .navbar__logo {
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            white-space: nowrap;
-        }
-
-        .navbar__logo span {
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .navbar__auth-btn {
-            padding: 0.5rem 1.25rem;
-            font-size: 0.875rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            color: #ffffff;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            transition: opacity 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-        }
-
-        .navbar__auth-btn:hover {
-            opacity: 0.9;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
-        }
-
-        /* ===== Hero ===== */
-        .hero {
-            position: relative;
-            padding: 8rem 0 5rem;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -40%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(124, 58, 237, 0.08) 40%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero__content {
-            position: relative;
-            text-align: center;
-            max-width: 720px;
-            margin: 0 auto;
-        }
-
-        .hero__badge {
-            display: inline-block;
-            padding: 0.35rem 1rem;
-            background: rgba(37, 99, 235, 0.12);
-            border: 1px solid rgba(37, 99, 235, 0.25);
-            border-radius: 2rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #60a5fa;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
-
-        .hero__title {
-            font-size: 3.25rem;
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -0.03em;
-            margin-bottom: 1.25rem;
-        }
-
-        .hero__description {
-            font-size: 1.15rem;
-            color: #94a3b8;
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
-        }
-
-        .hero__actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        /* ===== Benefits ===== */
-        .benefits {
-            padding: 5rem 0;
-        }
-
-        .benefits__grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        .benefit-card {
-            position: relative;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 1rem;
-            padding: 2rem;
-            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .benefit-card:hover {
-            border-color: rgba(124, 58, 237, 0.3);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-        }
-
-        .benefit-card__icon {
-            width: 3rem;
-            height: 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.15));
-            margin-bottom: 1.25rem;
-            font-size: 1.35rem;
-        }
-
-        .benefit-card__title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #f1f5f9;
-        }
-
-        .benefit-card__text {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            line-height: 1.65;
-        }
-
-        /* ===== Pricing ===== */
-        .pricing {
-            padding: 5rem 0;
-        }
-
-        .pricing__grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            align-items: start;
-        }
-
-        .pricing-card {
-            position: relative;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 1rem;
-            padding: 2rem;
-            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .pricing-card:hover {
-            border-color: rgba(124, 58, 237, 0.3);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-        }
-
-        .pricing-card--featured {
-            border-color: rgba(124, 58, 237, 0.4);
-            background: linear-gradient(170deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08));
-            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
-        }
-
-        .pricing-card__badge {
-            position: absolute;
-            top: -0.75rem;
-            right: 1.5rem;
-            padding: 0.25rem 0.85rem;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #fff;
-            font-size: 0.7rem;
-            font-weight: 700;
-            border-radius: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .pricing-card__name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 0.25rem;
-        }
-
-        .pricing-card__desc {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 1.25rem;
-        }
-
-        .pricing-card__price {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: #f1f5f9;
-            margin-bottom: 0.15rem;
-        }
-
-        .pricing-card__price-suffix {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: #94a3b8;
-        }
-
-        .pricing-card__yearly {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-bottom: 1.5rem;
-        }
-
-        .pricing-card__yearly strong {
-            color: #a78bfa;
-        }
-
-        .pricing-card__features {
-            list-style: none;
-            margin-bottom: 1.75rem;
-        }
-
-        .pricing-card__features li {
-            position: relative;
-            padding-left: 1.5rem;
-            padding-bottom: 0.6rem;
-            font-size: 0.9rem;
-            color: #cbd5e1;
-            line-height: 1.5;
-        }
-
-        .pricing-card__features li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0.45rem;
-            width: 0.5rem;
-            height: 0.5rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-        }
-
-        .pricing-card__btn {
-            width: 100%;
-        }
-
-        /* Skeleton loader for pricing */
-        .pricing-skeleton {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        .skeleton-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 1rem;
-            padding: 2rem;
-            min-height: 380px;
-        }
-
-        .skeleton-line {
-            height: 1rem;
-            background: linear-gradient(90deg, rgba(148, 163, 184, 0.08) 25%, rgba(148, 163, 184, 0.15) 50%, rgba(148, 163, 184, 0.08) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 0.25rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .skeleton-line--wide { width: 80%; }
-        .skeleton-line--medium { width: 60%; }
-        .skeleton-line--narrow { width: 40%; }
-        .skeleton-line--price { height: 2.5rem; width: 50%; margin-bottom: 1rem; }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* ===== Partner Program ===== */
-        .partner {
-            padding: 5rem 0;
-        }
-
-        .partner__wrapper {
-            background: linear-gradient(170deg, rgba(37, 99, 235, 0.06), rgba(124, 58, 237, 0.06));
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 1.25rem;
-            padding: 3rem;
-        }
-
-        .partner__header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .partner__header h2 {
-            font-size: 2.25rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.75rem;
-        }
-
-        .partner__header p {
-            color: #94a3b8;
-            font-size: 1.05rem;
-            max-width: 550px;
-            margin: 0 auto;
-        }
-
-        .partner__levels {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .partner__level {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .partner__level-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #60a5fa;
-            margin-bottom: 0.5rem;
-        }
-
-        .partner__level-pct {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.35rem;
-        }
-
-        .partner__level-desc {
-            font-size: 0.85rem;
-            color: #94a3b8;
-        }
-
-        .partner__note {
-            text-align: center;
-            font-size: 0.95rem;
-            color: #94a3b8;
-            line-height: 1.7;
-        }
-
-        .partner__note strong {
-            color: #f1f5f9;
-        }
-
-        /* ===== Auth Section ===== */
-        .auth {
-            padding: 5rem 0 6rem;
-        }
-
-        .auth__wrapper {
-            max-width: 440px;
-            margin: 0 auto;
-        }
-
-        .auth__tabs {
-            display: flex;
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 0.75rem;
-            padding: 0.25rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(148, 163, 184, 0.08);
-        }
-
-        .auth__tab {
-            flex: 1;
-            padding: 0.65rem 1rem;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            border-radius: 0.5rem;
-            transition: color 0.2s ease, background 0.2s ease;
-        }
-
-        .auth__tab--active {
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-        }
-
-        .auth__tab:not(.auth__tab--active):hover {
-            color: #e2e8f0;
-        }
-
-        .auth__form-container {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(148, 163, 184, 0.08);
-            border-radius: 1rem;
-            padding: 2rem;
-        }
-
-        .auth__form {
-            display: none;
-        }
-
-        .auth__form--active {
-            display: block;
-        }
-
-        .auth__referral-banner {
-            display: none;
-            padding: 0.75rem 1rem;
-            background: rgba(37, 99, 235, 0.1);
-            border: 1px solid rgba(37, 99, 235, 0.25);
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-            color: #60a5fa;
-            text-align: center;
-        }
-
-        .auth__referral-banner--visible {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #cbd5e1;
-            margin-bottom: 0.4rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.7rem 0.9rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-radius: 0.5rem;
-            color: #f1f5f9;
-            font-size: 0.95rem;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            outline: none;
-        }
-
-        .form-group input::placeholder {
-            color: #475569;
-        }
-
-        .form-group input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        .form-group__hint {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.3rem;
-        }
-
-        .auth__error {
-            display: none;
-            padding: 0.65rem 1rem;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            color: #fca5a5;
-            margin-bottom: 1rem;
-        }
-
-        .auth__error--visible {
-            display: block;
-        }
-
-        .auth__submit {
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-
-        .auth__submit--loading {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        /* ===== Footer ===== */
-        .footer {
-            border-top: 1px solid rgba(148, 163, 184, 0.08);
-            padding: 2rem 0;
-        }
-
-        .footer__inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: #475569;
-        }
-
-        .footer__links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .footer__links a {
-            color: #64748b;
-            transition: color 0.2s ease;
-        }
-
-        .footer__links a:hover {
-            color: #94a3b8;
-        }
-
-        /* ===== Responsive ===== */
-        @media (max-width: 1024px) {
-            .hero__title {
-                font-size: 2.5rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hero {
-                padding: 7rem 0 3.5rem;
-            }
-
-            .hero__title {
-                font-size: 2rem;
-            }
-
-            .hero__description {
-                font-size: 1rem;
-            }
-
-            .benefits__grid,
-            .pricing__grid,
-            .pricing-skeleton,
-            .partner__levels {
-                grid-template-columns: 1fr;
-            }
-
-            .section-title {
-                font-size: 1.75rem;
-            }
-
-            .partner__wrapper {
-                padding: 2rem 1.25rem;
-            }
-
-            .partner__header h2 {
-                font-size: 1.75rem;
-            }
-
-            .footer__inner {
-                flex-direction: column;
-                gap: 0.75rem;
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            html {
-                font-size: 15px;
-            }
-
-            .hero__title {
-                font-size: 1.75rem;
-            }
-
-            .hero__actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .auth__form-container {
-                padding: 1.5rem;
-            }
-        }
-    </style>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+    <link rel="stylesheet" href="/static/css/landing.css">
 </head>
-<body>
+<body class="noise-overlay dot-grid">
 
     <!-- ====== Navbar ====== -->
     <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="container navbar__inner">
+        <div class="navbar__inner">
             <a href="/" class="navbar__logo">
-                <span>AI Community Club</span> by Voicyfy
+                <span class="navbar__logo-bracket">&lt;</span>AI_COMMUNITY<span class="navbar__logo-bracket">/&gt;</span>
             </a>
-            <button class="navbar__auth-btn" id="navAuthBtn" type="button">
-                Войти / Регистрация
-            </button>
+
+            <div class="navbar__links">
+                <a href="#benefits" class="navbar__link">Возможности</a>
+                <a href="#pricing" class="navbar__link">Тарифы</a>
+                <a href="#partner" class="navbar__link">Партнерам</a>
+            </div>
+
+            <div class="navbar__actions">
+                <button class="navbar__auth-btn" id="navAuthBtn" type="button">
+                    Войти
+                </button>
+                <button class="navbar__toggle" aria-label="Меню" type="button">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
         </div>
     </nav>
 
     <main>
         <!-- ====== Hero ====== -->
         <section class="hero" id="hero">
-            <div class="container hero__content">
-                <div class="hero__badge">Закрытое AI-сообщество</div>
-                <h1 class="hero__title">
-                    Внедряйте <span class="gradient-text">искусственный интеллект</span> в бизнес вместе с нами
-                </h1>
-                <p class="hero__description">
-                    AI Community Club — закрытый клуб предпринимателей, где вы получаете доступ к
-                    AI-инструментам Voicyfy, обучению и сообществу единомышленников. Автоматизируйте
-                    бизнес-процессы и зарабатывайте на партнерской программе.
-                </p>
-                <div class="hero__actions">
-                    <a href="#auth" class="btn-primary">Вступить в клуб</a>
-                    <a href="#pricing" class="btn-outline">Тарифы</a>
+            <div class="hero__bg" aria-hidden="true"></div>
+
+            <div class="hero__content">
+                <div class="hero__badge animate-fade-in">
+                    <span class="hero__badge-dot" aria-hidden="true"></span>
+                    Закрытое AI-сообщество
                 </div>
+
+                <h1 class="hero__title animate-fade-in animate-delay-1">
+                    Внедряйте <span class="gradient-text">искусственный интеллект</span> в бизнес вместе&nbsp;с&nbsp;нами
+                </h1>
+
+                <p class="hero__description animate-fade-in animate-delay-2">
+                    AI Community Club — закрытый клуб предпринимателей, где вы получаете доступ к
+                    AI-инструментам Voicyfy, обучению и сообществу единомышленников.
+                </p>
+
+                <div class="hero__actions animate-fade-in animate-delay-3">
+                    <a href="#auth" class="btn-cta">Вступить в клуб</a>
+                    <a href="#pricing" class="btn-ghost">Тарифы &rarr;</a>
+                </div>
+
+                <!-- Terminal demo card -->
+                <div class="hero__terminal">
+                    <div class="terminal-card">
+                        <div class="terminal-card__header">
+                            <div class="terminal-card__dot terminal-card__dot--red"></div>
+                            <div class="terminal-card__dot terminal-card__dot--yellow"></div>
+                            <div class="terminal-card__dot terminal-card__dot--green"></div>
+                        </div>
+                        <div class="terminal-card__body" data-typewriter>
+                            <span class="terminal-card__line tw-line" data-text="> voicyfy create --template &quot;sales-agent&quot;" data-speed="25" data-delay="200"><span class="terminal-card__prompt">> voicyfy create --template "sales-agent"</span></span>
+                            <span class="terminal-card__line tw-line terminal-card__success" data-text="✓ Шаблон загружен и настроен" data-speed="20" data-delay="600"></span>
+                            <span class="terminal-card__line tw-line terminal-card__success" data-text="✓ Голосовой AI-агент создан" data-speed="20" data-delay="400"></span>
+                            <span class="terminal-card__line tw-line terminal-card__success" data-text="✓ Номер подключён: +7 (999) ***-**-**" data-speed="20" data-delay="400"></span>
+                            <span class="terminal-card__line tw-line terminal-card__cyan" data-text="> Ваш AI-ассистент готов к работе" data-speed="30" data-delay="500"></span>
+                            <span class="terminal-card__cursor" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="hero__stats">
+                    <div class="hero__stat">
+                        <div class="hero__stat-value gradient-text" data-count-to="500" data-count-suffix="+">0</div>
+                        <div class="hero__stat-label">участников</div>
+                    </div>
+                    <div class="hero__stat">
+                        <div class="hero__stat-value gradient-text">30%</div>
+                        <div class="hero__stat-label">комиссия</div>
+                    </div>
+                    <div class="hero__stat">
+                        <div class="hero__stat-value gradient-text">3</div>
+                        <div class="hero__stat-label">AI-инструмента</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll indicator -->
+            <div class="hero__scroll-indicator scroll-indicator" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
         </section>
 
         <!-- ====== Benefits ====== -->
         <section class="benefits" id="benefits">
             <div class="container">
-                <h2 class="section-title">Что дает <span class="gradient-text">клуб</span></h2>
-                <p class="section-subtitle">
-                    Все необходимое для внедрения AI в ваш бизнес — инструменты, знания и поддержка
-                </p>
+                <div class="benefits__header reveal">
+                    <span class="benefits__label">// возможности</span>
+                    <h2 class="benefits__title">Что дает <span class="gradient-text">клуб</span></h2>
+                    <p class="benefits__subtitle">
+                        Все необходимое для внедрения AI в ваш бизнес — инструменты, знания и&nbsp;поддержка
+                    </p>
+                </div>
 
-                <div class="benefits__grid">
+                <div class="benefits__grid stagger-children reveal">
                     <!-- Card 1 -->
                     <article class="benefit-card">
-                        <div class="benefit-card__icon" aria-hidden="true">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="benefit-card__icon benefit-card__icon--cyan" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" stroke="#00e5ff">
                                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                                 <line x1="12" y1="19" x2="12" y2="22"/>
@@ -808,8 +143,8 @@
 
                     <!-- Card 2 -->
                     <article class="benefit-card">
-                        <div class="benefit-card__icon" aria-hidden="true">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="benefit-card__icon benefit-card__icon--purple" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" stroke="#a78bfa">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                             </svg>
@@ -823,8 +158,8 @@
 
                     <!-- Card 3 -->
                     <article class="benefit-card">
-                        <div class="benefit-card__icon" aria-hidden="true">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <div class="benefit-card__icon benefit-card__icon--emerald" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" stroke="#10b981">
                                 <line x1="12" y1="1" x2="12" y2="23"/>
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
@@ -842,10 +177,13 @@
         <!-- ====== Pricing ====== -->
         <section class="pricing" id="pricing">
             <div class="container">
-                <h2 class="section-title">Выберите свой <span class="gradient-text">тариф</span></h2>
-                <p class="section-subtitle">
-                    Три уровня участия — от базового доступа до полного набора инструментов
-                </p>
+                <div class="pricing__header reveal">
+                    <span class="pricing__label">// тарифы</span>
+                    <h2 class="pricing__title">Выберите свой <span class="gradient-text">тариф</span></h2>
+                    <p class="pricing__subtitle">
+                        Три уровня участия — от базового доступа до полного набора инструментов
+                    </p>
+                </div>
 
                 <!-- Skeleton loader shown while API loads -->
                 <div class="pricing-skeleton" id="pricingSkeleton">
@@ -930,7 +268,7 @@
         </section>
 
         <!-- ====== Partner Program ====== -->
-        <section class="partner" id="partner">
+        <section class="partner reveal" id="partner">
             <div class="container">
                 <div class="partner__wrapper">
                     <div class="partner__header">
@@ -941,7 +279,7 @@
                         </p>
                     </div>
 
-                    <div class="partner__levels">
+                    <div class="partner__levels stagger-children revealed">
                         <div class="partner__level">
                             <div class="partner__level-name">Уровень 1</div>
                             <div class="partner__level-pct">30%</div>
@@ -970,12 +308,12 @@
         <!-- ====== Auth Section ====== -->
         <section class="auth" id="auth">
             <div class="container">
-                <h2 class="section-title">Присоединяйтесь к <span class="gradient-text">клубу</span></h2>
-                <p class="section-subtitle">
+                <h2 class="section-title reveal">Присоединяйтесь к <span class="gradient-text">клубу</span></h2>
+                <p class="section-subtitle reveal">
                     Создайте аккаунт или войдите, чтобы получить доступ к AI-инструментам
                 </p>
 
-                <div class="auth__wrapper">
+                <div class="auth__wrapper reveal">
                     <!-- Referral banner -->
                     <div class="auth__referral-banner" id="referralBanner">
                         Вас пригласил участник клуба. Реферальный код: <strong id="referralCodeDisplay"></strong>
@@ -1030,7 +368,7 @@
                                        required>
                             </div>
 
-                            <button type="submit" class="btn-primary auth__submit" id="loginSubmit">
+                            <button type="submit" class="auth__submit" id="loginSubmit">
                                 Войти
                             </button>
                         </form>
@@ -1075,7 +413,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="registerReferral">Реферальный код <span style="color:#64748b;font-weight:400;">(необязательно)</span></label>
+                                <label for="registerReferral">Реферальный код <span style="color:var(--text-muted);font-weight:400;">(необязательно)</span></label>
                                 <input type="text"
                                        id="registerReferral"
                                        name="referral_code"
@@ -1083,7 +421,7 @@
                                        autocomplete="off">
                             </div>
 
-                            <button type="submit" class="btn-primary auth__submit" id="registerSubmit">
+                            <button type="submit" class="auth__submit" id="registerSubmit">
                                 Создать аккаунт
                             </button>
                         </form>
@@ -1095,10 +433,10 @@
 
     <!-- ====== Footer ====== -->
     <footer class="footer">
-        <div class="container footer__inner">
-            <p>AI Community Club by Voicyfy</p>
+        <div class="footer__inner">
+            <p>&lt;AI_COMMUNITY/&gt; by Voicyfy</p>
             <nav class="footer__links" aria-label="footer">
-                <a href="#benefits">Преимущества</a>
+                <a href="#benefits">Возможности</a>
                 <a href="#pricing">Тарифы</a>
                 <a href="#partner">Партнерам</a>
             </nav>
@@ -1136,24 +474,20 @@
 
         /* ---------- Helpers ---------- */
 
-        /** Simple email validation */
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
-        /** Show error message in an error element */
         function showError(el, msg) {
             el.textContent = msg;
             el.classList.add('auth__error--visible');
         }
 
-        /** Hide error message */
         function hideError(el) {
             el.textContent = '';
             el.classList.remove('auth__error--visible');
         }
 
-        /** Set loading state on a button */
         function setLoading(btn, loading, originalText) {
             if (loading) {
                 btn.dataset.originalText = btn.textContent;
@@ -1167,7 +501,6 @@
             }
         }
 
-        /** Generic JSON fetch wrapper */
         function apiRequest(method, path, body) {
             var opts = {
                 method: method,
@@ -1191,14 +524,12 @@
             });
         }
 
-        /** Save auth data and redirect */
         function handleAuthSuccess(data) {
             localStorage.setItem(TOKEN_KEY, data.token);
             localStorage.setItem(USER_KEY, JSON.stringify(data.user));
             window.location.href = DASHBOARD_URL;
         }
 
-        /** Format number with spaces (e.g. 3000 -> "3 000") */
         function formatPrice(num) {
             return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         }
@@ -1206,7 +537,6 @@
         /* ---------- Referral code handling ---------- */
 
         function initReferral() {
-            // Read ?ref= from URL
             var params = new URLSearchParams(window.location.search);
             var refFromURL = params.get('ref');
 
@@ -1218,16 +548,13 @@
             var savedRef = localStorage.getItem(REF_KEY);
 
             if (savedRef) {
-                // Show banner
                 referralCodeDisp.textContent = savedRef;
                 referralBanner.classList.add('auth__referral-banner--visible');
 
-                // Pre-fill referral input
                 if (registerReferral) {
                     registerReferral.value = savedRef;
                 }
 
-                // Auto-switch to register tab if coming via referral link
                 if (refFromURL) {
                     switchTab('register');
                 }
@@ -1283,7 +610,6 @@
             var email = document.getElementById('loginEmail').value.trim();
             var password = document.getElementById('loginPassword').value;
 
-            // Client validation
             if (!email || !isValidEmail(email)) {
                 showError(loginError, 'Введите корректный email');
                 return;
@@ -1319,7 +645,6 @@
             var password = document.getElementById('registerPassword').value;
             var referralCode = document.getElementById('registerReferral').value.trim();
 
-            // Client validation
             if (!email || !isValidEmail(email)) {
                 showError(registerError, 'Введите корректный email');
                 return;
@@ -1340,7 +665,6 @@
 
             apiRequest('POST', '/auth/register', body)
             .then(function (data) {
-                // Clear saved referral code on successful registration
                 localStorage.removeItem(REF_KEY);
                 handleAuthSuccess(data);
             })
@@ -1394,7 +718,6 @@
                     });
                     html += '</ul>';
                 } else {
-                    // Default features based on limits
                     html += '<ul class="pricing-card__features">';
                     if (plan.max_voicyfy_agents !== undefined) {
                         html += '<li>' + plan.max_voicyfy_agents + ' голосов' + agentSuffix(plan.max_voicyfy_agents) + ' AI-агент' + agentSuffix(plan.max_voicyfy_agents) + ' Voicyfy</li>';
@@ -1420,14 +743,12 @@
             pricingGrid.style.display = 'grid';
         }
 
-        /** Escape HTML entities */
         function escapeHtml(str) {
             var div = document.createElement('div');
             div.appendChild(document.createTextNode(str));
             return div.innerHTML;
         }
 
-        /** Russian plural suffix helpers */
         function agentSuffix(n) {
             if (n === 1) return '';
             return n >= 2 && n <= 4 ? 'ых' : 'ых';
@@ -1445,7 +766,6 @@
                 renderPricingCards(data.plans);
             })
             .catch(function () {
-                // Show fallback static pricing
                 pricingSkeleton.style.display = 'none';
                 pricingFallback.style.display = 'grid';
             });
@@ -1463,5 +783,6 @@
     <script src="/static/js/utils.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/app.js"></script>
+    <script src="/static/js/animations.js"></script>
 </body>
 </html>
