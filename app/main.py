@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,5 +42,10 @@ app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 
 @app.get("/")
-async def root():
-    return RedirectResponse(url="/static/index.html")
+async def root(request: Request):
+    # Preserve query parameters (e.g. ?ref=ABC123) during redirect
+    query_string = request.url.query
+    url = "/static/index.html"
+    if query_string:
+        url += f"?{query_string}"
+    return RedirectResponse(url=url)
