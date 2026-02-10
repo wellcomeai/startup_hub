@@ -1,294 +1,180 @@
 """
-Payment callback endpoints for Robokassa integration.
+Robokassa Payment Service — production integration.
 
-These endpoints handle:
-  - Result URL (server-to-server callback from Robokassa)
-  - Success URL (user redirect after successful payment)
-  - Fail URL (user redirect after failed/cancelled payment)
+Handles:
+  - Payment URL generation with MD5 signature
+  - Callback signature verification
+  - Receipt generation for 54-FZ fiscal compliance
 """
 
+import hashlib
+import json
 import logging
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, PlainTextResponse
-from sqlalchemy.orm import Session
+from decimal import Decimal
+from urllib.parse import urlencode
 
 from app.config import settings
-from app.database import get_db
-from app.models.subscription import PaymentTransaction
-from app.services.payment_service import verify_result_signature
-from app.services.subscription_service import activate_subscription_from_payment
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/payments", tags=["payments"])
+
+def _md5(value: str) -> str:
+    """Return the MD5 hex digest of the given string."""
+    return hashlib.md5(value.encode("utf-8")).hexdigest()
 
 
-@router.post("/result", response_class=PlainTextResponse)
-@router.get("/result", response_class=PlainTextResponse)
-async def payment_result(
-    request: Request,
-    db: Session = Depends(get_db),
-):
+def generate_payment_url(
+    amount: Decimal,
+    invoice_id: int,
+    description: str,
+    email: str | None = None,
+    receipt_items: list[dict] | None = None,
+) -> str:
     """
-    Robokassa Result URL callback.
+    Generate a Robokassa payment URL.
 
-    Called server-to-server by Robokassa after successful payment.
-    Must return "OK{InvId}" on success, otherwise Robokassa will retry.
+    Parameters
+    ----------
+    amount : Decimal
+        Payment amount in RUB (e.g. 3000.00).
+    invoice_id : int
+        Unique integer invoice number (InvId).
+    description : str
+        Payment description shown to the user.
+    email : str, optional
+        Buyer email for the receipt.
+    receipt_items : list[dict], optional
+        Items for 54-FZ fiscal receipt.
 
-    NO authentication — Robokassa calls this directly.
-    Verified by MD5 signature using Password2.
+    Returns
+    -------
+    str
+        Full URL to redirect the user to Robokassa.
     """
-    # Parse parameters from GET or POST
-    if request.method == "POST":
-        form_data = await request.form()
-        params = dict(form_data)
+    merchant_login = settings.ROBOKASSA_MERCHANT_LOGIN
+    password1 = settings.ROBOKASSA_PASSWORD_1
+
+    if not merchant_login or not password1:
+        raise ValueError("Robokassa credentials are not configured")
+
+    out_sum = f"{amount:.2f}"
+
+    # --- Receipt (54-FZ) ---
+    receipt_param = None
+    if receipt_items:
+        receipt_obj = {
+            "sno": "usn_income",  # Система налогообложения — УСН доходы
+            "items": receipt_items,
+        }
+        receipt_param = json.dumps(receipt_obj, ensure_ascii=False)
+
+    # --- Signature: MerchantLogin:OutSum:InvId:Receipt:Password1 ---
+    # If receipt is present it goes into the signature
+    if receipt_param:
+        sign_string = f"{merchant_login}:{out_sum}:{invoice_id}:{receipt_param}:{password1}"
     else:
-        params = dict(request.query_params)
+        sign_string = f"{merchant_login}:{out_sum}:{invoice_id}:{password1}"
 
-    out_sum = params.get("OutSum", "")
-    inv_id = params.get("InvId", "")
-    signature = params.get("SignatureValue", "")
+    signature = _md5(sign_string)
 
-    # Log the callback for audit
+    # --- Build URL ---
+    if settings.ROBOKASSA_TEST_MODE:
+        base_url = "https://auth.robokassa.ru/Merchant/Index.aspx"
+    else:
+        base_url = "https://auth.robokassa.ru/Merchant/Index.aspx"
+
+    params = {
+        "MerchantLogin": merchant_login,
+        "OutSum": out_sum,
+        "InvId": invoice_id,
+        "Description": description,
+        "SignatureValue": signature,
+        "Culture": "ru",
+    }
+
+    if settings.ROBOKASSA_TEST_MODE:
+        params["IsTest"] = 1
+
+    if email:
+        params["Email"] = email
+
+    if receipt_param:
+        params["Receipt"] = receipt_param
+
+    url = f"{base_url}?{urlencode(params)}"
+
     logger.info(
-        f"Robokassa Result callback: InvId={inv_id}, OutSum={out_sum}, "
-        f"IP={request.client.host}"
+        f"Generated Robokassa URL: InvId={invoice_id}, amount={out_sum}, "
+        f"test_mode={settings.ROBOKASSA_TEST_MODE}"
     )
+    return url
 
-    # --- 1. Verify signature ---
-    if not verify_result_signature(out_sum, inv_id, signature):
-        logger.error(f"Invalid signature for InvId={inv_id}")
-        return PlainTextResponse(
-            content="bad sign",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
 
-    # --- 2. Find the transaction ---
-    try:
-        invoice_number = int(inv_id)
-    except (ValueError, TypeError):
-        logger.error(f"Invalid InvId format: {inv_id}")
-        return PlainTextResponse(
-            content="bad invid",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+def verify_result_signature(out_sum: str, inv_id: str, signature: str) -> bool:
+    """
+    Verify the signature on Robokassa Result URL callback.
 
-    # Lock the row to prevent double-processing
-    transaction = (
-        db.query(PaymentTransaction)
-        .filter(PaymentTransaction.invoice_number == invoice_number)
-        .with_for_update()
-        .first()
-    )
+    The expected signature is: MD5(OutSum:InvId:Password2)
 
-    if not transaction:
-        logger.error(f"Transaction not found for InvId={inv_id}")
-        return PlainTextResponse(
-            content="not found",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+    Parameters
+    ----------
+    out_sum : str
+        The OutSum parameter from the callback.
+    inv_id : str
+        The InvId parameter from the callback.
+    signature : str
+        The SignatureValue parameter from the callback.
 
-    # --- 3. Idempotency: already processed ---
-    if transaction.status == "success":
-        logger.info(f"Transaction {inv_id} already processed, returning OK")
-        return PlainTextResponse(content=f"OK{inv_id}")
+    Returns
+    -------
+    bool
+        True if the signature is valid.
+    """
+    password2 = settings.ROBOKASSA_PASSWORD_2
+    if not password2:
+        logger.error("ROBOKASSA_PASSWORD_2 is not configured")
+        return False
 
-    if transaction.status != "pending":
+    expected = _md5(f"{out_sum}:{inv_id}:{password2}")
+    result = expected.lower() == signature.lower()
+
+    if not result:
         logger.warning(
-            f"Transaction {inv_id} has unexpected status: {transaction.status}"
-        )
-        return PlainTextResponse(
-            content="bad status",
-            status_code=status.HTTP_400_BAD_REQUEST,
+            f"Signature mismatch for InvId={inv_id}: "
+            f"expected={expected}, received={signature}"
         )
 
-    # --- 4. Validate amount ---
-    expected_sum = f"{transaction.amount:.2f}"
-    if out_sum != expected_sum:
-        logger.error(
-            f"Amount mismatch for InvId={inv_id}: "
-            f"expected={expected_sum}, received={out_sum}"
-        )
-        return PlainTextResponse(
-            content="bad amount",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # --- 5. Mark as paid ---
-    transaction.status = "success"
-    transaction.paid_at = datetime.now(timezone.utc)
-    transaction.callback_data = params
-    db.flush()
-
-    # --- 6. Activate subscription and commissions ---
-    try:
-        activate_subscription_from_payment(db, transaction)
-        db.commit()
-        logger.info(f"Payment processed successfully: InvId={inv_id}")
-    except Exception as e:
-        db.rollback()
-        logger.exception(f"Failed to activate subscription for InvId={inv_id}: {e}")
-        return PlainTextResponse(
-            content="internal error",
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    # Robokassa expects exactly "OK{InvId}" to confirm receipt
-    return PlainTextResponse(content=f"OK{inv_id}")
+    return result
 
 
-@router.get("/success", response_class=HTMLResponse)
-async def payment_success(
-    InvId: str = Query(""),
-    OutSum: str = Query(""),
-    db: Session = Depends(get_db),
-):
+def build_receipt_items(plan_name: str, amount: Decimal, months: int) -> list[dict]:
     """
-    Robokassa Success URL — user is redirected here after payment.
+    Build a receipt items list for 54-FZ fiscal compliance.
 
-    This is a user-facing page, NOT the server callback.
-    The actual payment confirmation happens via /result.
+    Parameters
+    ----------
+    plan_name : str
+        Name of the subscription plan.
+    amount : Decimal
+        Total payment amount.
+    months : int
+        Number of months (1 or 12).
+
+    Returns
+    -------
+    list[dict]
+        List of receipt item dicts for Robokassa.
     """
-    app_url = settings.APP_URL.rstrip("/")
+    period_label = "годовая" if months == 12 else "месячная"
+    item_name = f"Подписка «{plan_name}» ({period_label})"
 
-    # Try to get transaction info for a nice message
-    plan_name = ""
-    if InvId:
-        try:
-            transaction = (
-                db.query(PaymentTransaction)
-                .filter(PaymentTransaction.invoice_number == int(InvId))
-                .first()
-            )
-            if transaction:
-                plan_name = transaction.plan_code
-        except (ValueError, TypeError):
-            pass
-
-    html = f"""<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата успешна — AI Community Club</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
-            color: #fff; display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
-        }}
-        .card {{
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 48px; text-align: center; max-width: 480px;
-        }}
-        .icon {{ font-size: 64px; margin-bottom: 24px; }}
-        h1 {{ font-size: 24px; margin-bottom: 12px; }}
-        p {{ color: rgba(255,255,255,0.7); margin-bottom: 24px; line-height: 1.6; }}
-        .btn {{
-            display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #6c5ce7, #a855f7);
-            color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;
-            transition: transform 0.2s;
-        }}
-        .btn:hover {{ transform: translateY(-2px); }}
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="icon">✅</div>
-        <h1>Оплата прошла успешно!</h1>
-        <p>
-            Ваша подписка{' «' + plan_name + '»' if plan_name else ''} активирована.
-            Спасибо за покупку!
-        </p>
-        <a href="{app_url}/static/dashboard.html" class="btn">Перейти в личный кабинет</a>
-    </div>
-    <script>
-        // Auto-redirect after 5 seconds
-        setTimeout(function() {{
-            window.location.href = '{app_url}/static/dashboard.html';
-        }}, 5000);
-    </script>
-</body>
-</html>"""
-
-    return HTMLResponse(content=html)
-
-
-@router.get("/fail", response_class=HTMLResponse)
-async def payment_fail(
-    InvId: str = Query(""),
-    OutSum: str = Query(""),
-    db: Session = Depends(get_db),
-):
-    """
-    Robokassa Fail URL — user is redirected here if payment fails or is cancelled.
-    """
-    app_url = settings.APP_URL.rstrip("/")
-
-    # Mark transaction as failed if it exists and is still pending
-    if InvId:
-        try:
-            transaction = (
-                db.query(PaymentTransaction)
-                .filter(
-                    PaymentTransaction.invoice_number == int(InvId),
-                    PaymentTransaction.status == "pending",
-                )
-                .first()
-            )
-            if transaction:
-                transaction.status = "failed"
-                db.commit()
-        except (ValueError, TypeError):
-            pass
-
-    html = f"""<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ошибка оплаты — AI Community Club</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
-            color: #fff; display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
-        }}
-        .card {{
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 48px; text-align: center; max-width: 480px;
-        }}
-        .icon {{ font-size: 64px; margin-bottom: 24px; }}
-        h1 {{ font-size: 24px; margin-bottom: 12px; }}
-        p {{ color: rgba(255,255,255,0.7); margin-bottom: 24px; line-height: 1.6; }}
-        .btn {{
-            display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #6c5ce7, #a855f7);
-            color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;
-            transition: transform 0.2s; margin: 0 8px;
-        }}
-        .btn-outline {{
-            background: transparent; border: 1px solid rgba(255,255,255,0.3);
-        }}
-        .btn:hover {{ transform: translateY(-2px); }}
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="icon">❌</div>
-        <h1>Оплата не прошла</h1>
-        <p>
-            Платёж был отменён или произошла ошибка.
-            Средства не были списаны. Вы можете попробовать снова.
-        </p>
-        <a href="{app_url}/static/dashboard.html" class="btn">В личный кабинет</a>
-    </div>
-</body>
-</html>"""
-
-    return HTMLResponse(content=html)
+    return [
+        {
+            "name": item_name[:128],  # Robokassa limit: 128 chars
+            "quantity": 1,
+            "sum": float(amount),
+            "payment_method": "full_payment",
+            "payment_object": "service",
+            "tax": "none",  # Без НДС (УСН)
+        }
+    ]
