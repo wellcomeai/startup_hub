@@ -1,0 +1,22 @@
+databases:
+  - name: ai-community-db
+    plan: free
+    databaseName: ai_community_club
+    user: ai_club
+
+services:
+  - type: web
+    name: ai-community-club
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-community-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11.0"

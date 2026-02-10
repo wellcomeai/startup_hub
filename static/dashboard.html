@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Community Club - Личный кабинет</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        /* ===== CSS Reset & Base ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --bg-card-hover: rgba(51, 65, 85, 0.6);
+            --gradient-blue: #2563eb;
+            --gradient-purple: #7c3aed;
+            --gradient-main: linear-gradient(135deg, #2563eb, #7c3aed);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(148, 163, 184, 0.12);
+            --border-focus: #2563eb;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: 0.2s ease;
+            --sidebar-width: 260px;
+            --header-height: 64px;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        a:hover {
+            color: var(--gradient-purple);
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        input, textarea, select {
+            font-family: inherit;
+            font-size: inherit;
+            color: var(--text-primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* ===== Layout ===== */
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #fff;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            margin: 0.125rem 0.5rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sidebar-nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav-item.active {
+            background: rgba(37, 99, 235, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-nav-item .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav-item .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-user-email {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-logout svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ===== Mobile Sidebar Toggle ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 98;
+        }
+
+        .mobile-menu-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: background var(--transition);
+        }
+
+        .mobile-menu-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .mobile-header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ===== Section Panels ===== */
+        .section-panel {
+            display: none;
+        }
+
+        .section-panel.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-gradient {
+            background: var(--gradient-main);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .card-title {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-gradient .card-title {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .card-footer {
+            margin-top: 0.75rem;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .card-gradient .card-footer {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== Stats Grid ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .stat-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .stat-card-icon.yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .stat-card-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+        .stat-card-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .stat-card-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.375rem;
+            font-weight: 700;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn-primary {
+            background: var(--gradient-main);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(51, 65, 85, 0.8);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== Referral Link Box ===== */
+        .referral-link-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .referral-link-box label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .referral-link-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .referral-link-input-group input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .referral-link-input-group input:focus {
+            border-color: var(--border-focus);
+        }
+
+        .copy-feedback {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            margin-top: 0.375rem;
+            min-height: 1rem;
+        }
+
+        /* ===== Tables ===== */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .table-header-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        .table-filters {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-filter-select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.375rem 0.625rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .table-filter-select:focus {
+            border-color: var(--border-focus);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            min-width: 600px;
+        }
+
+        .data-table th {
+            padding: 0.75rem 1.25rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(15, 23, 42, 0.5);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.04);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-empty {
+            padding: 3rem 1.25rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .table-footer-total {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pagination-btn {
+            padding: 0.375rem 0.625rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .pagination-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.1875rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-inactive { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .badge-paid { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-accrued { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+
+        .badge-none { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .badge-bronze { background: rgba(205, 127, 50, 0.15); color: #cd7f32; }
+        .badge-silver { background: rgba(192, 192, 192, 0.15); color: #c0c0c0; }
+        .badge-gold { background: rgba(255, 215, 0, 0.15); color: #ffd700; }
+        .badge-platinum { background: rgba(229, 228, 226, 0.15); color: #e5e4e2; }
+
+        /* ===== Tabs ===== */
+        .tabs {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== Forms ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--border-focus);
+        }
+
+        .form-input:read-only {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-message {
+            grid-column: 1 / -1;
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            display: none;
+        }
+
+        .form-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .form-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* ===== Profile Section Extras ===== */
+        .profile-header-card {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar-lg {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .profile-info h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .profile-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .referrer-block {
+            margin-top: 1.5rem;
+        }
+
+        .referrer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .referrer-card h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .referrer-info {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .set-referrer-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .set-referrer-form .form-group {
+            flex: 1;
+        }
+
+        /* ===== Subscription Plans Grid ===== */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .plan-card.current {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 1px var(--accent-blue);
+        }
+
+        .plan-card.current::after {
+            content: 'Текущий';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.1875rem 0.5rem;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        .plan-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-description {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-price span {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .plan-yearly-note {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            flex: 1;
+            margin-bottom: 1.25rem;
+        }
+
+        .plan-features li {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        .plan-features li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.625rem;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ===== Overview Welcome ===== */
+        .welcome-card {
+            background: var(--gradient-main);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .welcome-card h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.375rem;
+            position: relative;
+        }
+
+        .welcome-card p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .welcome-sub-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+            color: #fff;
+            position: relative;
+        }
+
+        /* ===== Commission Breakdown ===== */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .breakdown-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        /* ===== Current Sub Card ===== */
+        .current-sub-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .current-sub-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .sub-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .sub-detail-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.125rem;
+        }
+
+        .sub-detail-item span {
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        /* ===== Loading State ===== */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ===== Toast Notifications ===== */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.875rem 1.25rem;
+            font-size: 0.8125rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: toast-in 0.3s ease;
+            max-width: 400px;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: var(--header-height);
+            }
+
+            .page-container {
+                padding: 1.5rem 1rem 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .breakdown-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .referral-link-input-group {
+                flex-direction: column;
+            }
+
+            .welcome-card {
+                padding: 1.5rem;
+            }
+
+            .welcome-card h1 {
+                font-size: 1.25rem;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .set-referrer-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .plan-actions {
+                flex-direction: column;
+            }
+
+            .sub-detail-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .breakdown-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                width: 100%;
+            }
+
+            .tab-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .sub-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Открыть меню">
+            <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <span class="mobile-header-title">AI Community Club</span>
+        <div style="width: 40px;"></div>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-logo">AI</div>
+                <span class="sidebar-brand-text">AI Community Club</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-item active" data-section="overview">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </span>
+                    <span>Обзор</span>
+                </div>
+                <div class="sidebar-nav-item" data-section="team">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </span>
+                    <span>Моя команда</span>
+                </div>
+                <div class="sidebar-nav-item" data-section="commissions">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </span>
+                    <span>Мои комиссии</span>
+                </div>
+                <div class="sidebar-nav-item" data-section="profile">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
+                    <span>Профиль</span>
+                </div>
+                <div class="sidebar-nav-item" data-section="subscription">
+                    <span class="nav-icon">
+                        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </span>
+                    <span>Подписка</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarAvatar">--</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="sidebarUserName">Загрузка...</div>
+                        <div class="sidebar-user-email" id="sidebarUserEmail">...</div>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logoutBtn" type="button">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Выйти</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-container">
+
+                <!-- ==================== OVERVIEW ==================== -->
+                <section class="section-panel active" id="sectionOverview">
+                    <div class="welcome-card">
+                        <h1 id="welcomeTitle">Добро пожаловать!</h1>
+                        <p>Ваш личный кабинет партнёра AI Community Club</p>
+                        <div class="welcome-sub-info" id="welcomeSubInfo" style="display: none;">
+                            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                            <span id="welcomeSubText">--</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid" id="overviewStats">
+                        <div class="stat-card">
+                            <div class="stat-card-icon blue">
+                                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-card-label">Рефералы (1 ур.)</div>
+                            <div class="stat-card-value" id="statLevel1">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon purple">
+                                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-card-label">Рефералы (2 ур.)</div>
+                            <div class="stat-card-value" id="statLevel2">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon green">
+                                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div class="stat-card-label">Всего заработано</div>
+                            <div class="stat-card-value" id="statEarned">0 &#8381;</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon yellow">
+                                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div class="stat-card-label">Выплачено</div>
+                            <div class="stat-card-value" id="statPaid">0 &#8381;</div>
+                        </div>
+                    </div>
+
+                    <div class="referral-link-box">
+                        <label>Ваша реферальная ссылка</label>
+                        <div class="referral-link-input-group">
+                            <input type="text" id="referralLinkInput" readonly value="Загрузка...">
+                            <button class="btn btn-primary btn-sm" id="copyLinkBtn" type="button">
+                                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span>Копировать</span>
+                            </button>
+                        </div>
+                        <div class="copy-feedback" id="copyFeedback"></div>
+                    </div>
+                </section>
+
+                <!-- ==================== TEAM ==================== -->
+                <section class="section-panel" id="sectionTeam">
+                    <div class="section-header">
+                        <h2 class="section-title">Моя команда</h2>
+                        <p class="section-subtitle">Партнёры, зарегистрированные по вашей ссылке</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-icon blue">
+                                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            </div>
+                            <div class="stat-card-label">Всего в команде</div>
+                            <div class="stat-card-value" id="teamTotalSize">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon green">
+                                <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <div class="stat-card-label">С активной подпиской</div>
+                            <div class="stat-card-value" id="teamPaidCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon purple">
+                                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-card-label">Уровень 1</div>
+                            <div class="stat-card-value" id="teamLevel1Count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon yellow">
+                                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-card-label">Уровень 2</div>
+                            <div class="stat-card-value" id="teamLevel2Count">0</div>
+                        </div>
+                    </div>
+
+                    <div class="tabs" id="teamTabs">
+                        <button class="tab-btn active" data-tab="teamLevel1" type="button">Уровень 1</button>
+                        <button class="tab-btn" data-tab="teamLevel2" type="button">Уровень 2</button>
+                    </div>
+
+                    <!-- Level 1 Table -->
+                    <div class="tab-content active" id="tabTeamLevel1">
+                        <div class="table-container">
+                            <div class="table-header">
+                                <span class="table-header-title">Прямые рефералы</span>
+                                <div class="table-filters">
+                                    <select class="table-filter-select" id="teamL1FilterStatus">
+                                        <option value="all">Все</option>
+                                        <option value="active">С подпиской</option>
+                                        <option value="inactive">Без подписки</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-scroll">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Имя</th>
+                                            <th>Email</th>
+                                            <th>Дата</th>
+                                            <th>Тариф</th>
+                                            <th>Месяцев</th>
+                                            <th>Комиссия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teamLevel1Body">
+                                        <tr>
+                                            <td colspan="6" class="table-empty">
+                                                <div class="loading-spinner"><div class="spinner"></div></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <span>Итого комиссия: <span class="table-footer-total" id="teamL1TotalCommission">0 &#8381;</span></span>
+                                <span id="teamL1Count">0 партнёров</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 2 Table -->
+                    <div class="tab-content" id="tabTeamLevel2">
+                        <div class="table-container">
+                            <div class="table-header">
+                                <span class="table-header-title">Рефералы второго уровня</span>
+                                <div class="table-filters">
+                                    <select class="table-filter-select" id="teamL2FilterStatus">
+                                        <option value="all">Все</option>
+                                        <option value="active">С подпиской</option>
+                                        <option value="inactive">Без подписки</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-scroll">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Имя</th>
+                                            <th>Email</th>
+                                            <th>Дата</th>
+                                            <th>Пригласил</th>
+                                            <th>Подписка</th>
+                                            <th>Комиссия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teamLevel2Body">
+                                        <tr>
+                                            <td colspan="6" class="table-empty">
+                                                <div class="loading-spinner"><div class="spinner"></div></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <span>Итого комиссия: <span class="table-footer-total" id="teamL2TotalCommission">0 &#8381;</span></span>
+                                <span id="teamL2Count">0 партнёров</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== COMMISSIONS ==================== -->
+                <section class="section-panel" id="sectionCommissions">
+                    <div class="section-header">
+                        <h2 class="section-title">Мои комиссии</h2>
+                        <p class="section-subtitle">Детализация партнёрских вознаграждений</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-icon green">
+                                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            </div>
+                            <div class="stat-card-label">Всего начислено</div>
+                            <div class="stat-card-value" id="commTotalEarned">0 &#8381;</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon blue">
+                                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            </div>
+                            <div class="stat-card-label">Выплачено</div>
+                            <div class="stat-card-value" id="commTotalPaid">0 &#8381;</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon yellow">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="stat-card-label">Ожидает выплаты</div>
+                            <div class="stat-card-value" id="commTotalPending">0 &#8381;</div>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-grid">
+                        <div class="breakdown-card">
+                            <div class="breakdown-label">Прямые (30%)</div>
+                            <div class="breakdown-value" id="commByDirect">0 &#8381;</div>
+                        </div>
+                        <div class="breakdown-card">
+                            <div class="breakdown-label">2-й уровень (15%)</div>
+                            <div class="breakdown-value" id="commByLevel2">0 &#8381;</div>
+                        </div>
+                        <div class="breakdown-card">
+                            <div class="breakdown-label">Удержание (10%)</div>
+                            <div class="breakdown-value" id="commByRetention">0 &#8381;</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">
+                            <span class="table-header-title">История начислений</span>
+                            <div class="table-filters">
+                                <select class="table-filter-select" id="commFilterType">
+                                    <option value="all">Все типы</option>
+                                    <option value="direct">Прямые</option>
+                                    <option value="level2">2-й уровень</option>
+                                    <option value="retention">Удержание</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Тип</th>
+                                        <th>Партнёр</th>
+                                        <th>Платёж</th>
+                                        <th>Ставка</th>
+                                        <th>Комиссия</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="commissionsBody">
+                                    <tr>
+                                        <td colspan="7" class="table-empty">
+                                            <div class="loading-spinner"><div class="spinner"></div></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <span id="commItemsCount">0 записей</span>
+                            <div class="pagination" id="commPagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== PROFILE ==================== -->
+                <section class="section-panel" id="sectionProfile">
+                    <div class="section-header">
+                        <h2 class="section-title">Профиль</h2>
+                        <p class="section-subtitle">Управление вашими личными данными</p>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="profile-header-card">
+                            <div class="profile-avatar-lg" id="profileAvatar">--</div>
+                            <div class="profile-info">
+                                <h2 id="profileFullName">Загрузка...</h2>
+                                <p id="profileEmail">...</p>
+                                <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    <span class="badge badge-none" id="profilePartnerBadge">--</span>
+                                    <span style="font-size: 0.8125rem; color: var(--text-muted);">Код: <strong id="profileRefCode" style="color: var(--text-primary);">--</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Личные данные</h3>
+                        <div id="profileFormMessage" class="form-message"></div>
+                        <form id="profileForm" class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="profileFirstName">Имя</label>
+                                <input type="text" id="profileFirstName" class="form-input" placeholder="Введите имя">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profileLastName">Фамилия</label>
+                                <input type="text" id="profileLastName" class="form-input" placeholder="Введите фамилию">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profileEmailReadonly">Email</label>
+                                <input type="email" id="profileEmailReadonly" class="form-input" readonly>
+                                <span class="form-hint">Email нельзя изменить</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profilePhone">Телефон</label>
+                                <input type="tel" id="profilePhone" class="form-input" placeholder="+7 (999) 123-45-67">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profileTelegram">Telegram</label>
+                                <input type="text" id="profileTelegram" class="form-input" placeholder="@username">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="profileCity">Город</label>
+                                <input type="text" id="profileCity" class="form-input" placeholder="Ваш город">
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label" for="profileAbout">О себе</label>
+                                <textarea id="profileAbout" class="form-input" placeholder="Расскажите немного о себе..."></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="profileSaveBtn">
+                                    <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                    <span>Сохранить</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="referrer-block" id="referrerBlock">
+                        <div class="referrer-card" id="referrerCard">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SUBSCRIPTION ==================== -->
+                <section class="section-panel" id="sectionSubscription">
+                    <div class="section-header">
+                        <h2 class="section-title">Подписка</h2>
+                        <p class="section-subtitle">Управление вашей подпиской и тарифным планом</p>
+                    </div>
+
+                    <div class="current-sub-card" id="currentSubCard">
+                        <h3>Текущая подписка</h3>
+                        <div id="currentSubContent">
+                            <div class="loading-spinner"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Доступные тарифы</h3>
+                    <div class="plans-grid" id="plansGrid">
+                        <div class="loading-spinner" style="grid-column: 1 / -1;"><div class="spinner"></div></div>
+                    </div>
+
+                    <div class="table-container" id="paymentHistoryContainer" style="margin-top: 1.5rem;">
+                        <div class="table-header">
+                            <span class="table-header-title">История платежей</span>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Сумма</th>
+                                        <th>Статус</th>
+                                        <th>Тариф</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentHistoryBody">
+                                    <tr>
+                                        <td colspan="4" class="table-empty">Нет данных о платежах</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        /* ===== Auth Guard ===== */
+        var token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/static/index.html';
+            return;
+        }
+
+        /* ===== State ===== */
+        var state = {
+            user: null,
+            team: null,
+            commissions: null,
+            plans: null,
+            subscription: null,
+            referralLink: null,
+            commissionsPage: 1,
+            commissionsType: 'all'
+        };
+
+        /* ===== API Helpers ===== */
+        function apiHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            };
+        }
+
+        function apiFetch(url, options) {
+            options = options || {};
+            options.headers = Object.assign({}, apiHeaders(), options.headers || {});
+            return fetch(url, options)
+                .then(function(resp) {
+                    if (resp.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/static/index.html';
+                        return Promise.reject(new Error('Unauthorized'));
+                    }
+                    if (!resp.ok) {
+                        return resp.json().then(function(err) {
+                            return Promise.reject(new Error(err.detail || 'Request failed'));
+                        });
+                    }
+                    return resp.json();
+                });
+        }
+
+        /* ===== Utility Functions ===== */
+        function formatMoney(amount) {
+            if (amount === null || amount === undefined) return '0 \u20BD';
+            return Number(amount).toLocaleString('ru-RU', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }) + ' \u20BD';
+        }
+
+        function formatDate(isoStr) {
+            if (!isoStr) return '\u2014';
+            var d = new Date(isoStr);
+            return d.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function formatDateTime(isoStr) {
+            if (!isoStr) return '\u2014';
+            var d = new Date(isoStr);
+            return d.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }) + ' ' + d.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getInitials(firstName, lastName) {
+            var f = (firstName || '').charAt(0).toUpperCase();
+            var l = (lastName || '').charAt(0).toUpperCase();
+            return (f + l) || '?';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function getPartnerLabel(status) {
+            var map = {
+                'none': 'Новичок',
+                'bronze': 'Бронза',
+                'silver': 'Серебро',
+                'gold': 'Золото',
+                'platinum': 'Платина'
+            };
+            return map[status] || status || 'Новичок';
+        }
+
+        function getCommTypeLabel(type) {
+            var map = {
+                'direct': 'Прямая',
+                'level2': '2-й уровень',
+                'retention': 'Удержание'
+            };
+            return map[type] || type;
+        }
+
+        function getCommStatusLabel(status) {
+            var map = {
+                'accrued': 'Начислено',
+                'pending_payout': 'Ожидает',
+                'paid': 'Выплачено'
+            };
+            return map[status] || status;
+        }
+
+        function getCommStatusBadgeClass(status) {
+            var map = {
+                'accrued': 'badge-accrued',
+                'pending_payout': 'badge-pending',
+                'paid': 'badge-paid'
+            };
+            return map[status] || 'badge-inactive';
+        }
+
+        function getBillingLabel(period) {
+            return period === 'yearly' ? 'Годовая' : 'Ежемесячная';
+        }
+
+        function getSubStatusLabel(status) {
+            var map = {
+                'active': 'Активна',
+                'cancelled': 'Отменена',
+                'expired': 'Истекла',
+                'trial': 'Пробная'
+            };
+            return map[status] || status;
+        }
+
+        /* ===== Toast ===== */
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(function() {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3500);
+        }
+
+        /* ===== Navigation ===== */
+        var navItems = document.querySelectorAll('.sidebar-nav-item');
+        var sectionPanels = document.querySelectorAll('.section-panel');
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebarOverlay');
+        var mobileBtn = document.getElementById('mobileMenuBtn');
+
+        function navigateTo(sectionName) {
+            navItems.forEach(function(item) {
+                item.classList.toggle('active', item.getAttribute('data-section') === sectionName);
+            });
+            sectionPanels.forEach(function(panel) {
+                panel.classList.toggle('active', panel.id === 'section' + sectionName.charAt(0).toUpperCase() + sectionName.slice(1));
+            });
+            closeSidebar();
+            loadSectionData(sectionName);
+        }
+
+        navItems.forEach(function(item) {
+            item.addEventListener('click', function() {
+                navigateTo(item.getAttribute('data-section'));
+            });
+        });
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        mobileBtn.addEventListener('click', openSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        /* ===== Section Data Loading ===== */
+        var loadedSections = {};
+
+        function loadSectionData(section) {
+            switch (section) {
+                case 'overview':
+                    loadOverview();
+                    break;
+                case 'team':
+                    if (!loadedSections.team) loadTeam();
+                    break;
+                case 'commissions':
+                    if (!loadedSections.commissions) loadCommissions();
+                    break;
+                case 'profile':
+                    if (!loadedSections.profile) loadProfile();
+                    break;
+                case 'subscription':
+                    if (!loadedSections.subscription) loadSubscription();
+                    break;
+            }
+        }
+
+        /* ===== OVERVIEW ===== */
+        function loadOverview() {
+            apiFetch('/api/users/me')
+                .then(function(data) {
+                    state.user = data;
+                    renderOverview(data);
+                    renderSidebarUser(data);
+                })
+                .catch(function(err) {
+                    showToast('Ошибка загрузки профиля: ' + err.message, 'error');
+                });
+
+            apiFetch('/api/referrals/my-link')
+                .then(function(data) {
+                    state.referralLink = data;
+                    document.getElementById('referralLinkInput').value = data.referral_link || '';
+                })
+                .catch(function() {});
+        }
+
+        function renderOverview(user) {
+            var name = user.first_name || 'Партнёр';
+            document.getElementById('welcomeTitle').textContent = 'Добро пожаловать, ' + name + '!';
+
+            if (user.subscription) {
+                var subInfo = document.getElementById('welcomeSubInfo');
+                subInfo.style.display = 'inline-flex';
+                document.getElementById('welcomeSubText').textContent =
+                    user.subscription.plan_name + ' \u2014 ' + getSubStatusLabel(user.subscription.status);
+            }
+
+            var stats = user.stats || {};
+            document.getElementById('statLevel1').textContent = stats.total_referrals_level1 || 0;
+            document.getElementById('statLevel2').textContent = stats.total_referrals_level2 || 0;
+            document.getElementById('statEarned').textContent = formatMoney(stats.total_commissions_earned);
+            document.getElementById('statPaid').textContent = formatMoney(stats.total_commissions_paid);
+        }
+
+        function renderSidebarUser(user) {
+            var initials = getInitials(user.first_name, user.last_name);
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarUserName').textContent =
+                (user.first_name || '') + ' ' + (user.last_name || '') || user.email;
+            document.getElementById('sidebarUserEmail').textContent = user.email || '';
+        }
+
+        /* ===== Copy Referral Link ===== */
+        document.getElementById('copyLinkBtn').addEventListener('click', function() {
+            var input = document.getElementById('referralLinkInput');
+            var feedback = document.getElementById('copyFeedback');
+            if (!input.value || input.value === 'Загрузка...') return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(function() {
+                    feedback.textContent = 'Ссылка скопирована!';
+                    setTimeout(function() { feedback.textContent = ''; }, 2500);
+                }).catch(function() {
+                    fallbackCopy(input, feedback);
+                });
+            } else {
+                fallbackCopy(input, feedback);
+            }
+        });
+
+        function fallbackCopy(input, feedback) {
+            input.select();
+            input.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                feedback.textContent = 'Ссылка скопирована!';
+            } catch (e) {
+                feedback.textContent = 'Не удалось скопировать';
+                feedback.style.color = 'var(--accent-red)';
+            }
+            setTimeout(function() {
+                feedback.textContent = '';
+                feedback.style.color = '';
+            }, 2500);
+        }
+
+        /* ===== TEAM ===== */
+        var teamTabBtns = document.querySelectorAll('#teamTabs .tab-btn');
+        teamTabBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                teamTabBtns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                document.querySelectorAll('#sectionTeam .tab-content').forEach(function(tc) {
+                    tc.classList.toggle('active', tc.id === 'tab' + btn.getAttribute('data-tab').charAt(0).toUpperCase() + btn.getAttribute('data-tab').slice(1));
+                });
+            });
+        });
+
+        /* Fix tab content IDs matching */
+        teamTabBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tabId = btn.getAttribute('data-tab');
+                teamTabBtns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                document.getElementById('tabTeamLevel1').classList.toggle('active', tabId === 'teamLevel1');
+                document.getElementById('tabTeamLevel2').classList.toggle('active', tabId === 'teamLevel2');
+            });
+        });
+
+        function loadTeam() {
+            apiFetch('/api/referrals/my-team')
+                .then(function(data) {
+                    state.team = data;
+                    loadedSections.team = true;
+                    renderTeamStats(data.totals);
+                    renderTeamLevel1(data.level1);
+                    renderTeamLevel2(data.level2);
+                })
+                .catch(function(err) {
+                    showToast('Ошибка загрузки команды: ' + err.message, 'error');
+                });
+        }
+
+        function renderTeamStats(totals) {
+            document.getElementById('teamTotalSize').textContent = totals.total_team_size || 0;
+            document.getElementById('teamPaidCount').textContent = (totals.level1_paid_count || 0) + (totals.level2_paid_count || 0);
+            document.getElementById('teamLevel1Count').textContent = totals.level1_count || 0;
+            document.getElementById('teamLevel2Count').textContent = totals.level2_count || 0;
+        }
+
+        function renderTeamLevel1(level1, filter) {
+            filter = filter || 'all';
+            var tbody = document.getElementById('teamLevel1Body');
+            var filtered = level1;
+            if (filter === 'active') {
+                filtered = level1.filter(function(u) { return u.has_active_subscription; });
+            } else if (filter === 'inactive') {
+                filtered = level1.filter(function(u) { return !u.has_active_subscription; });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Нет рефералов' +
+                    (filter !== 'all' ? ' с выбранным фильтром' : '') + '</td></tr>';
+            } else {
+                var html = '';
+                var totalComm = 0;
+                filtered.forEach(function(u) {
+                    totalComm += u.my_commission_from_user || 0;
+                    html += '<tr>' +
+                        '<td style="color:var(--text-primary);font-weight:500;">' + escapeHtml(u.first_name || '\u2014') + '</td>' +
+                        '<td>' + escapeHtml(u.email) + '</td>' +
+                        '<td>' + formatDate(u.registered_at) + '</td>' +
+                        '<td>' + (u.subscription_plan ?
+                            '<span class="badge badge-active">' + escapeHtml(u.subscription_plan) + '</span>' :
+                            '<span class="badge badge-inactive">Нет</span>') + '</td>' +
+                        '<td>' + (u.consecutive_months || 0) + '</td>' +
+                        '<td style="font-weight:600;color:var(--accent-green);">' + formatMoney(u.my_commission_from_user) + '</td>' +
+                        '</tr>';
+                });
+                tbody.innerHTML = html;
+                document.getElementById('teamL1TotalCommission').textContent = formatMoney(totalComm);
+            }
+            document.getElementById('teamL1Count').textContent = filtered.length + ' ' + pluralize(filtered.length, 'партнёр', 'партнёра', 'партнёров');
+        }
+
+        function renderTeamLevel2(level2, filter) {
+            filter = filter || 'all';
+            var tbody = document.getElementById('teamLevel2Body');
+            var filtered = level2;
+            if (filter === 'active') {
+                filtered = level2.filter(function(u) { return u.has_active_subscription; });
+            } else if (filter === 'inactive') {
+                filtered = level2.filter(function(u) { return !u.has_active_subscription; });
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Нет рефералов второго уровня' +
+                    (filter !== 'all' ? ' с выбранным фильтром' : '') + '</td></tr>';
+            } else {
+                var html = '';
+                var totalComm = 0;
+                filtered.forEach(function(u) {
+                    totalComm += u.my_commission_from_user || 0;
+                    html += '<tr>' +
+                        '<td style="color:var(--text-primary);font-weight:500;">' + escapeHtml(u.first_name || '\u2014') + '</td>' +
+                        '<td>' + escapeHtml(u.email) + '</td>' +
+                        '<td>' + formatDate(u.registered_at) + '</td>' +
+                        '<td>' + (u.invited_by ? escapeHtml(u.invited_by.first_name || u.invited_by.referral_code || '\u2014') : '\u2014') + '</td>' +
+                        '<td>' + (u.has_active_subscription ?
+                            '<span class="badge badge-active">Активна</span>' :
+                            '<span class="badge badge-inactive">Нет</span>') + '</td>' +
+                        '<td style="font-weight:600;color:var(--accent-green);">' + formatMoney(u.my_commission_from_user) + '</td>' +
+                        '</tr>';
+                });
+                tbody.innerHTML = html;
+                document.getElementById('teamL2TotalCommission').textContent = formatMoney(totalComm);
+            }
+            document.getElementById('teamL2Count').textContent = filtered.length + ' ' + pluralize(filtered.length, 'партнёр', 'партнёра', 'партнёров');
+        }
+
+        /* Team filters */
+        document.getElementById('teamL1FilterStatus').addEventListener('change', function() {
+            if (state.team) renderTeamLevel1(state.team.level1, this.value);
+        });
+        document.getElementById('teamL2FilterStatus').addEventListener('change', function() {
+            if (state.team) renderTeamLevel2(state.team.level2, this.value);
+        });
+
+        /* ===== COMMISSIONS ===== */
+        function loadCommissions() {
+            var page = state.commissionsPage;
+            var type = state.commissionsType;
+            var url = '/api/referrals/my-commissions?page=' + page + '&per_page=20';
+            if (type !== 'all') url += '&commission_type=' + type;
+
+            apiFetch(url)
+                .then(function(data) {
+                    state.commissions = data;
+                    loadedSections.commissions = true;
+                    renderCommissionsSummary(data.summary);
+                    renderCommissionsTable(data.commissions);
+                    renderCommissionsPagination(data.pagination);
+                })
+                .catch(function(err) {
+                    showToast('Ошибка загрузки комиссий: ' + err.message, 'error');
+                });
+        }
+
+        function renderCommissionsSummary(summary) {
+            document.getElementById('commTotalEarned').textContent = formatMoney(summary.total_earned);
+            document.getElementById('commTotalPaid').textContent = formatMoney(summary.total_paid);
+            document.getElementById('commTotalPending').textContent = formatMoney(summary.total_pending);
+            document.getElementById('commByDirect').textContent = formatMoney(summary.by_type.direct);
+            document.getElementById('commByLevel2').textContent = formatMoney(summary.by_type.level2);
+            document.getElementById('commByRetention').textContent = formatMoney(summary.by_type.retention);
+        }
+
+        function renderCommissionsTable(commissions) {
+            var tbody = document.getElementById('commissionsBody');
+            if (commissions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="table-empty">Нет начислений</td></tr>';
+                return;
+            }
+            var html = '';
+            commissions.forEach(function(c) {
+                html += '<tr>' +
+                    '<td>' + formatDateTime(c.accrued_at) + '</td>' +
+                    '<td>' + getCommTypeLabel(c.commission_type) + '</td>' +
+                    '<td>' + escapeHtml(c.payer ? (c.payer.first_name || c.payer.email) : '\u2014') + '</td>' +
+                    '<td>' + formatMoney(c.payment_amount) + '</td>' +
+                    '<td>' + c.commission_rate + '%</td>' +
+                    '<td style="font-weight:600;color:var(--accent-green);">' + formatMoney(c.commission_amount) + '</td>' +
+                    '<td><span class="badge ' + getCommStatusBadgeClass(c.status) + '">' + getCommStatusLabel(c.status) + '</span></td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderCommissionsPagination(pagination) {
+            document.getElementById('commItemsCount').textContent = pagination.total_items + ' ' + pluralize(pagination.total_items, 'запись', 'записи', 'записей');
+            var container = document.getElementById('commPagination');
+            if (pagination.total_pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            var html = '';
+            html += '<button class="pagination-btn" ' + (pagination.page <= 1 ? 'disabled' : '') +
+                ' data-page="' + (pagination.page - 1) + '">&laquo;</button>';
+            for (var i = 1; i <= pagination.total_pages; i++) {
+                if (pagination.total_pages > 7) {
+                    if (i !== 1 && i !== pagination.total_pages &&
+                        Math.abs(i - pagination.page) > 1) {
+                        if (i === 2 || i === pagination.total_pages - 1) {
+                            html += '<span style="color:var(--text-muted);padding:0 0.25rem;">...</span>';
+                        }
+                        continue;
+                    }
+                }
+                html += '<button class="pagination-btn' + (i === pagination.page ? ' active' : '') +
+                    '" data-page="' + i + '">' + i + '</button>';
+            }
+            html += '<button class="pagination-btn" ' + (pagination.page >= pagination.total_pages ? 'disabled' : '') +
+                ' data-page="' + (pagination.page + 1) + '">&raquo;</button>';
+            container.innerHTML = html;
+
+            container.querySelectorAll('.pagination-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (btn.disabled) return;
+                    state.commissionsPage = parseInt(btn.getAttribute('data-page'));
+                    loadedSections.commissions = false;
+                    loadCommissions();
+                });
+            });
+        }
+
+        document.getElementById('commFilterType').addEventListener('change', function() {
+            state.commissionsType = this.value;
+            state.commissionsPage = 1;
+            loadedSections.commissions = false;
+            loadCommissions();
+        });
+
+        /* ===== PROFILE ===== */
+        function loadProfile() {
+            apiFetch('/api/users/me')
+                .then(function(data) {
+                    state.user = data;
+                    loadedSections.profile = true;
+                    renderProfile(data);
+                    renderSidebarUser(data);
+                })
+                .catch(function(err) {
+                    showToast('Ошибка загрузки профиля: ' + err.message, 'error');
+                });
+        }
+
+        function renderProfile(user) {
+            document.getElementById('profileAvatar').textContent = getInitials(user.first_name, user.last_name);
+            document.getElementById('profileFullName').textContent =
+                ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || user.email;
+            document.getElementById('profileEmail').textContent = user.email;
+
+            var badge = document.getElementById('profilePartnerBadge');
+            badge.textContent = getPartnerLabel(user.partner_status);
+            badge.className = 'badge badge-' + (user.partner_status || 'none');
+
+            document.getElementById('profileRefCode').textContent = user.referral_code || '\u2014';
+
+            document.getElementById('profileFirstName').value = user.first_name || '';
+            document.getElementById('profileLastName').value = user.last_name || '';
+            document.getElementById('profileEmailReadonly').value = user.email || '';
+            document.getElementById('profilePhone').value = user.phone || '';
+            document.getElementById('profileTelegram').value = user.telegram || '';
+            document.getElementById('profileCity').value = user.city || '';
+            document.getElementById('profileAbout').value = user.about || '';
+
+            renderReferrerBlock(user);
+        }
+
+        function renderReferrerBlock(user) {
+            var card = document.getElementById('referrerCard');
+            if (user.referred_by) {
+                card.innerHTML = '<h4>Ваш пригласитель</h4>' +
+                    '<p class="referrer-info">' +
+                    escapeHtml(user.referred_by.first_name || 'Партнёр') +
+                    (user.referred_by.email ? ' (' + escapeHtml(user.referred_by.email) + ')' : '') +
+                    '</p>';
+            } else {
+                card.innerHTML = '<h4>Укажите пригласителя</h4>' +
+                    '<p class="referrer-info" style="margin-bottom:0.75rem;">Если вас пригласил партнёр, введите его реферальный код.</p>' +
+                    '<form class="set-referrer-form" id="setReferrerForm">' +
+                    '  <div class="form-group">' +
+                    '    <label class="form-label" for="setReferrerCode">Реферальный код</label>' +
+                    '    <input type="text" id="setReferrerCode" class="form-input" placeholder="Например: AB12CD" maxlength="10" style="text-transform:uppercase;">' +
+                    '  </div>' +
+                    '  <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:2px;">Установить</button>' +
+                    '</form>' +
+                    '<div id="setReferrerMessage" class="form-message" style="margin-top:0.5rem;"></div>';
+
+                setTimeout(function() {
+                    var form = document.getElementById('setReferrerForm');
+                    if (form) {
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            var code = document.getElementById('setReferrerCode').value.trim().toUpperCase();
+                            if (!code) return;
+                            apiFetch('/api/users/me/set-referrer', {
+                                method: 'POST',
+                                body: JSON.stringify({ referral_code: code })
+                            }).then(function(data) {
+                                showToast('Пригласитель успешно установлен!', 'success');
+                                loadedSections.profile = false;
+                                loadProfile();
+                            }).catch(function(err) {
+                                var msgEl = document.getElementById('setReferrerMessage');
+                                msgEl.className = 'form-message error';
+                                msgEl.textContent = err.message;
+                            });
+                        });
+                    }
+                }, 50);
+            }
+        }
+
+        /* Profile form submit */
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var msgEl = document.getElementById('profileFormMessage');
+            msgEl.className = 'form-message';
+            msgEl.style.display = 'none';
+
+            var btn = document.getElementById('profileSaveBtn');
+            btn.disabled = true;
+
+            var payload = {
+                first_name: document.getElementById('profileFirstName').value.trim() || null,
+                last_name: document.getElementById('profileLastName').value.trim() || null,
+                phone: document.getElementById('profilePhone').value.trim() || null,
+                telegram: document.getElementById('profileTelegram').value.trim() || null,
+                city: document.getElementById('profileCity').value.trim() || null,
+                about: document.getElementById('profileAbout').value.trim() || null
+            };
+
+            apiFetch('/api/users/me', {
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            }).then(function(data) {
+                msgEl.className = 'form-message success';
+                msgEl.textContent = 'Профиль успешно обновлён';
+                btn.disabled = false;
+                state.user = Object.assign(state.user || {}, data);
+                renderSidebarUser(state.user);
+                document.getElementById('profileAvatar').textContent = getInitials(data.first_name, data.last_name);
+                document.getElementById('profileFullName').textContent =
+                    ((data.first_name || '') + ' ' + (data.last_name || '')).trim() || state.user.email;
+                var badge = document.getElementById('profilePartnerBadge');
+                badge.textContent = getPartnerLabel(data.partner_status);
+                badge.className = 'badge badge-' + (data.partner_status || 'none');
+                showToast('Профиль обновлён', 'success');
+            }).catch(function(err) {
+                msgEl.className = 'form-message error';
+                msgEl.textContent = 'Ошибка: ' + err.message;
+                btn.disabled = false;
+            });
+        });
+
+        /* ===== SUBSCRIPTION ===== */
+        function loadSubscription() {
+            Promise.all([
+                apiFetch('/api/subscriptions/my'),
+                apiFetch('/api/subscriptions/plans')
+            ]).then(function(results) {
+                var subData = results[0];
+                var plansData = results[1];
+                state.subscription = subData;
+                state.plans = plansData.plans;
+                loadedSections.subscription = true;
+                renderCurrentSubscription(subData);
+                renderPlans(plansData.plans, subData);
+            }).catch(function(err) {
+                showToast('Ошибка загрузки подписки: ' + err.message, 'error');
+            });
+        }
+
+        function renderCurrentSubscription(subData) {
+            var container = document.getElementById('currentSubContent');
+            if (!subData.has_subscription || !subData.subscription) {
+                container.innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem;">У вас нет активной подписки. Выберите тариф ниже, чтобы начать.</p>';
+                return;
+            }
+            var sub = subData.subscription;
+            container.innerHTML = '<div class="sub-detail-grid">' +
+                '<div class="sub-detail-item"><label>Тариф</label><span>' + escapeHtml(sub.plan_name) + '</span></div>' +
+                '<div class="sub-detail-item"><label>Статус</label><span><span class="badge badge-active">' + getSubStatusLabel(sub.status) + '</span></span></div>' +
+                '<div class="sub-detail-item"><label>Период</label><span>' + getBillingLabel(sub.billing_period) + '</span></div>' +
+                '<div class="sub-detail-item"><label>Начало</label><span>' + formatDate(sub.started_at) + '</span></div>' +
+                '<div class="sub-detail-item"><label>Истекает</label><span>' + formatDate(sub.expires_at) + '</span></div>' +
+                '<div class="sub-detail-item"><label>Осталось дней</label><span>' + (sub.days_remaining || 0) + '</span></div>' +
+                '<div class="sub-detail-item"><label>Месяцев подряд</label><span>' + (sub.consecutive_months || 0) + '</span></div>' +
+                '</div>';
+        }
+
+        function renderPlans(plans, subData) {
+            var grid = document.getElementById('plansGrid');
+            if (!plans || plans.length === 0) {
+                grid.innerHTML = '<p style="color:var(--text-muted);">Нет доступных тарифов</p>';
+                return;
+            }
+            var currentPlanCode = (subData && subData.subscription) ? subData.subscription.plan_code : null;
+            var html = '';
+            plans.forEach(function(plan) {
+                var isCurrent = plan.code === currentPlanCode;
+                html += '<div class="plan-card' + (isCurrent ? ' current' : '') + '">' +
+                    '<div class="plan-name">' + escapeHtml(plan.name) + '</div>' +
+                    '<div class="plan-description">' + escapeHtml(plan.description || '') + '</div>' +
+                    '<div class="plan-price">' + formatMoney(plan.price_monthly) + ' <span>/ мес</span></div>';
+
+                if (plan.price_yearly > 0) {
+                    html += '<div class="plan-yearly-note">Годовая: ' + formatMoney(plan.price_yearly) + '/год (экономия ' + formatMoney(plan.yearly_savings) + ')</div>';
+                }
+
+                if (plan.features && plan.features.length > 0) {
+                    html += '<ul class="plan-features">';
+                    plan.features.forEach(function(f) {
+                        html += '<li>' + escapeHtml(f) + '</li>';
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<ul class="plan-features">' +
+                        '<li>VoicyFy: до ' + (plan.max_voicyfy_agents || 1) + ' агент(ов)</li>' +
+                        '<li>ChatForYou: ' + escapeHtml(plan.max_chatforyou_access || 'limited') + '</li>' +
+                        '<li>AI-Админ боты: до ' + (plan.max_ai_admin_bots || 1) + '</li>' +
+                        '</ul>';
+                }
+
+                html += '<div class="plan-actions">';
+                if (isCurrent) {
+                    html += '<button class="btn btn-secondary btn-sm btn-block" disabled>Текущий тариф</button>';
+                } else {
+                    html += '<button class="btn btn-primary btn-sm btn-block" onclick="window.__selectPlan(\'' + plan.code + '\',\'monthly\')">' +
+                        (currentPlanCode ? 'Сменить тариф' : 'Выбрать') + '</button>';
+                }
+                html += '</div></div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        window.__selectPlan = function(planCode, period) {
+            apiFetch('/api/subscriptions/create-payment', {
+                method: 'POST',
+                body: JSON.stringify({ plan_code: planCode, billing_period: period })
+            }).then(function(data) {
+                showToast(data.message || 'Запрос на оплату создан', 'info');
+            }).catch(function(err) {
+                showToast('Ошибка: ' + err.message, 'error');
+            });
+        };
+
+        /* ===== LOGOUT ===== */
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            window.location.href = '/static/index.html';
+        });
+
+        /* ===== Pluralization Helper ===== */
+        function pluralize(n, one, few, many) {
+            var abs = Math.abs(n) % 100;
+            var lastDigit = abs % 10;
+            if (abs > 10 && abs < 20) return many;
+            if (lastDigit > 1 && lastDigit < 5) return few;
+            if (lastDigit === 1) return one;
+            return many;
+        }
+
+        /* ===== Init ===== */
+        loadOverview();
+
+    })();
+    </script>
+</body>
+</html>

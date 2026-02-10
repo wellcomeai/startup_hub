@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>AI Community Club — Панель администратора</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+
+    <style>
+        /* ===== Reset & Base ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                         Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Utilities ===== */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* ===== Header ===== */
+        .admin-header {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-header__brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header__logo {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .admin-header__title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+        }
+
+        .admin-header__badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .admin-header__actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header__user {
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-right: 0.5rem;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid #60a5fa;
+            outline-offset: 2px;
+        }
+
+        .btn--ghost {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .btn--ghost:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn--primary {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #ffffff;
+        }
+        .btn--primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn--secondary {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+        .btn--secondary:hover {
+            background: #334155;
+        }
+
+        .btn--danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .btn--danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .btn--sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== Tab Navigation ===== */
+        .admin-tabs {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0;
+        }
+
+        .admin-tabs__item {
+            padding: 0.875rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #94a3b8;
+            cursor: pointer;
+            border: none;
+            background: none;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .admin-tabs__item:hover {
+            color: #e2e8f0;
+        }
+
+        .admin-tabs__item--active {
+            color: #ffffff;
+        }
+
+        .admin-tabs__item--active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .admin-tabs__item:focus-visible {
+            outline: 2px solid #60a5fa;
+            outline-offset: -2px;
+        }
+
+        /* ===== Main Content ===== */
+        .admin-main {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section--active {
+            display: block;
+        }
+
+        .admin-section__title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        /* ===== Metric Cards ===== */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #475569;
+            transform: translateY(-2px);
+        }
+
+        .metric-card__label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card__value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .metric-card__value--accent {
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-card__sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.375rem;
+        }
+
+        /* ===== Plans Breakdown ===== */
+        .plans-breakdown {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .plans-breakdown__title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+        }
+
+        .plans-breakdown__list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+        }
+
+        .plan-badge__name {
+            color: #93c5fd;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .plan-badge__count {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* ===== Data Table ===== */
+        .table-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 240px;
+            max-width: 400px;
+            padding: 0.625rem 1rem;
+            padding-left: 2.5rem;
+            font-size: 0.875rem;
+            color: #f1f5f9;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+            max-width: 400px;
+        }
+
+        .search-wrapper__icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #64748b;
+            pointer-events: none;
+        }
+
+        .table-container {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8125rem;
+        }
+
+        .data-table thead {
+            background: #0f172a;
+        }
+
+        .data-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #94a3b8;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            border-bottom: 1px solid #334155;
+        }
+
+        .data-table td {
+            padding: 0.75rem 1rem;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .status-badge--active {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .status-badge--none {
+            background: rgba(100, 116, 139, 0.15);
+            color: #94a3b8;
+        }
+
+        .status-badge--bronze {
+            background: rgba(217, 119, 6, 0.15);
+            color: #fbbf24;
+        }
+
+        .status-badge--silver {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .status-badge--gold {
+            background: rgba(234, 179, 8, 0.15);
+            color: #facc15;
+        }
+
+        .status-badge--platinum {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+        }
+
+        .status-badge--admin {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+
+        .plan-tag {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-transform: uppercase;
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+        }
+
+        .plan-tag--empty {
+            background: rgba(100, 116, 139, 0.1);
+            color: #64748b;
+        }
+
+        /* ===== Pagination ===== */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .pagination__info {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+        }
+
+        .pagination__controls {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .pagination__btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .pagination__btn:hover:not(:disabled) {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .pagination__btn--active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-color: transparent;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .pagination__btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* ===== Finance Section ===== */
+        .finance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .finance-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .finance-card__header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .finance-card__icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+
+        .finance-card__icon--revenue {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .finance-card__icon--commissions {
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+        }
+
+        .finance-card__icon--pool {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+        }
+
+        .finance-card__title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .finance-stat-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.625rem 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        .finance-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .finance-stat-row__label {
+            font-size: 0.8125rem;
+            color: #94a3b8;
+        }
+
+        .finance-stat-row__value {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .finance-stat-row__value--green {
+            color: #4ade80;
+        }
+
+        .finance-stat-row__value--blue {
+            color: #60a5fa;
+        }
+
+        .finance-stat-row__value--purple {
+            color: #c084fc;
+        }
+
+        /* ===== Test Activation Form ===== */
+        .form-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 560px;
+        }
+
+        .form-panel__title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-panel__desc {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.375rem;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            color: #f1f5f9;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: #475569;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.875rem center;
+            padding-right: 2.5rem;
+        }
+
+        .form-select option {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        /* ===== Toast / Notification ===== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 1.5rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            min-width: 280px;
+            max-width: 420px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: toastSlideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast--success {
+            background: #065f46;
+            color: #a7f3d0;
+            border: 1px solid #047857;
+        }
+
+        .toast--error {
+            background: #7f1d1d;
+            color: #fecaca;
+            border: 1px solid #991b1b;
+        }
+
+        .toast--info {
+            background: #1e3a5f;
+            color: #bfdbfe;
+            border: 1px solid #1d4ed8;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ===== Loading & Empty States ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            gap: 0.75rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #64748b;
+        }
+
+        .empty-state__text {
+            font-size: 0.9375rem;
+        }
+
+        /* ===== Section Divider ===== */
+        .section-divider {
+            border: none;
+            height: 1px;
+            background: #334155;
+            margin: 2rem 0;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 0 1rem;
+            }
+
+            .admin-header__title {
+                font-size: 0.9375rem;
+            }
+
+            .admin-header__badge {
+                display: none;
+            }
+
+            .admin-tabs {
+                padding: 0 1rem;
+                overflow-x: auto;
+            }
+
+            .admin-tabs__item {
+                padding: 0.75rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            .admin-main {
+                padding: 1.25rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .metric-card {
+                padding: 1rem;
+            }
+
+            .metric-card__value {
+                font-size: 1.375rem;
+            }
+
+            .finance-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-panel {
+                max-width: 100%;
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-wrapper {
+                max-width: 100%;
+            }
+
+            .pagination {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header__user {
+                display: none;
+            }
+
+            .btn span.btn-label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Header ===== -->
+    <header class="admin-header" role="banner">
+        <div class="admin-header__brand">
+            <div class="admin-header__logo" aria-hidden="true">AI</div>
+            <h1 class="admin-header__title">AI Community Club</h1>
+            <span class="admin-header__badge">Admin</span>
+        </div>
+        <div class="admin-header__actions">
+            <span class="admin-header__user" id="adminEmail" aria-label="Текущий администратор"></span>
+            <a href="/static/dashboard.html" class="btn btn--ghost">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="btn-label">В дашборд</span>
+            </a>
+            <button type="button" class="btn btn--danger" id="logoutBtn" aria-label="Выйти из системы">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span class="btn-label">Выход</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== Tab Navigation ===== -->
+    <nav class="admin-tabs" role="tablist" aria-label="Разделы панели администратора">
+        <button class="admin-tabs__item admin-tabs__item--active"
+                role="tab"
+                aria-selected="true"
+                aria-controls="section-dashboard"
+                id="tab-dashboard"
+                data-tab="dashboard">
+            Дашборд
+        </button>
+        <button class="admin-tabs__item"
+                role="tab"
+                aria-selected="false"
+                aria-controls="section-users"
+                id="tab-users"
+                data-tab="users">
+            Пользователи
+        </button>
+        <button class="admin-tabs__item"
+                role="tab"
+                aria-selected="false"
+                aria-controls="section-finance"
+                id="tab-finance"
+                data-tab="finance">
+            Финансы
+        </button>
+    </nav>
+
+    <!-- ===== Main Content ===== -->
+    <main class="admin-main" role="main">
+
+        <!-- ===== Dashboard Section ===== -->
+        <section class="admin-section admin-section--active"
+                 id="section-dashboard"
+                 role="tabpanel"
+                 aria-labelledby="tab-dashboard">
+
+            <h2 class="admin-section__title">Обзор системы</h2>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid" id="metricsGrid">
+                <div class="metric-card">
+                    <div class="metric-card__label">Всего пользователей</div>
+                    <div class="metric-card__value" id="metricTotalUsers">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card__label">Платных пользователей</div>
+                    <div class="metric-card__value metric-card__value--accent" id="metricPaidUsers">--</div>
+                    <div class="metric-card__sub" id="metricPaidRate"></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card__label">Общая выручка</div>
+                    <div class="metric-card__value" id="metricRevenue">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card__label">Комиссии начислено</div>
+                    <div class="metric-card__value" id="metricCommAccrued">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card__label">Комиссии выплачено</div>
+                    <div class="metric-card__value" id="metricCommPaid">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card__label">Лидерский пул (текущий месяц)</div>
+                    <div class="metric-card__value metric-card__value--accent" id="metricLeaderPool">--</div>
+                </div>
+            </div>
+
+            <!-- Users by Plan -->
+            <div class="plans-breakdown" id="planBreakdown">
+                <div class="plans-breakdown__title">Распределение по тарифам</div>
+                <div class="plans-breakdown__list" id="plansList">
+                    <div class="loading-overlay">
+                        <div class="loading-spinner"></div>
+                        <span>Загрузка данных...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Users Section ===== -->
+        <section class="admin-section"
+                 id="section-users"
+                 role="tabpanel"
+                 aria-labelledby="tab-users"
+                 hidden>
+
+            <h2 class="admin-section__title">Управление пользователями</h2>
+
+            <!-- Search & Controls -->
+            <div class="table-controls">
+                <div class="search-wrapper">
+                    <svg class="search-wrapper__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="search"
+                           class="search-input"
+                           id="userSearch"
+                           placeholder="Поиск по email или имени..."
+                           aria-label="Поиск пользователей">
+                </div>
+                <button type="button" class="btn btn--secondary btn--sm" id="refreshUsersBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Обновить
+                </button>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Email</th>
+                                <th scope="col">Имя</th>
+                                <th scope="col">Реферальный код</th>
+                                <th scope="col">Партнерский статус</th>
+                                <th scope="col">Подписка</th>
+                                <th scope="col">Рефералы</th>
+                                <th scope="col">Дата регистрации</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="loading-overlay">
+                                        <div class="loading-spinner"></div>
+                                        <span>Загрузка пользователей...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="usersPagination">
+                <div class="pagination__info" id="paginationInfo"></div>
+                <div class="pagination__controls" id="paginationControls"></div>
+            </div>
+        </section>
+
+        <!-- ===== Finance Section ===== -->
+        <section class="admin-section"
+                 id="section-finance"
+                 role="tabpanel"
+                 aria-labelledby="tab-finance"
+                 hidden>
+
+            <h2 class="admin-section__title">Финансы и комиссии</h2>
+
+            <div class="finance-grid" id="financeGrid">
+                <!-- Revenue Card -->
+                <div class="finance-card">
+                    <div class="finance-card__header">
+                        <div class="finance-card__icon finance-card__icon--revenue" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="finance-card__title">Доходы</div>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Общая выручка</span>
+                        <span class="finance-stat-row__value finance-stat-row__value--green" id="finRevenue">--</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Платных пользователей</span>
+                        <span class="finance-stat-row__value" id="finPaidUsers">--</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Конверсия</span>
+                        <span class="finance-stat-row__value" id="finConversion">--</span>
+                    </div>
+                </div>
+
+                <!-- Commissions Card -->
+                <div class="finance-card">
+                    <div class="finance-card__header">
+                        <div class="finance-card__icon finance-card__icon--commissions" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                        </div>
+                        <div class="finance-card__title">Партнерские комиссии</div>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Всего начислено</span>
+                        <span class="finance-stat-row__value finance-stat-row__value--blue" id="finCommAccrued">--</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Выплачено</span>
+                        <span class="finance-stat-row__value finance-stat-row__value--green" id="finCommPaid">--</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Ожидает выплаты</span>
+                        <span class="finance-stat-row__value" id="finCommPending">--</span>
+                    </div>
+                </div>
+
+                <!-- Leader Pool Card -->
+                <div class="finance-card">
+                    <div class="finance-card__header">
+                        <div class="finance-card__icon finance-card__icon--pool" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </div>
+                        <div class="finance-card__title">Лидерский пул</div>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Пул за текущий месяц</span>
+                        <span class="finance-stat-row__value finance-stat-row__value--purple" id="finLeaderPool">--</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Ставка отчислений</span>
+                        <span class="finance-stat-row__value">5%</span>
+                    </div>
+                    <div class="finance-stat-row">
+                        <span class="finance-stat-row__label">Распределение</span>
+                        <span class="finance-stat-row__value" style="font-size: 0.8125rem; color: #94a3b8;">Ручное (ежемесячно)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commission Rates Info -->
+            <div class="finance-card" style="margin-bottom: 2rem;">
+                <div class="finance-card__header">
+                    <div class="finance-card__icon finance-card__icon--commissions" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    </div>
+                    <div class="finance-card__title">Ставки реферальных комиссий</div>
+                </div>
+                <div class="finance-stat-row">
+                    <span class="finance-stat-row__label">Прямая комиссия (уровень 1)</span>
+                    <span class="finance-stat-row__value">30%</span>
+                </div>
+                <div class="finance-stat-row">
+                    <span class="finance-stat-row__label">Комиссия уровня 2</span>
+                    <span class="finance-stat-row__value">15%</span>
+                </div>
+                <div class="finance-stat-row">
+                    <span class="finance-stat-row__label">Бонус за удержание</span>
+                    <span class="finance-stat-row__value">10%</span>
+                </div>
+                <div class="finance-stat-row">
+                    <span class="finance-stat-row__label">Лидерский пул</span>
+                    <span class="finance-stat-row__value">5%</span>
+                </div>
+                <div class="finance-stat-row">
+                    <span class="finance-stat-row__label">Маржа владельца</span>
+                    <span class="finance-stat-row__value">40%</span>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Test Activation Form -->
+            <h2 class="admin-section__title">Тестовая активация подписки</h2>
+
+            <div class="form-panel">
+                <div class="form-panel__title">Активировать подписку для пользователя</div>
+                <div class="form-panel__desc">Выдайте тестовую подписку любому зарегистрированному пользователю без оплаты.</div>
+
+                <form id="testActivationForm" novalidate>
+                    <div class="form-group">
+                        <label class="form-label" for="activateEmail">Email пользователя</label>
+                        <input type="email"
+                               class="form-input"
+                               id="activateEmail"
+                               name="email"
+                               placeholder="user@example.com"
+                               required
+                               autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="activatePlan">Тарифный план</label>
+                        <select class="form-select" id="activatePlan" name="plan_code" required>
+                            <option value="" disabled selected>Выберите тариф</option>
+                            <option value="start">Start</option>
+                            <option value="base">Base</option>
+                            <option value="pro">Pro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="activateMonths">Количество месяцев</label>
+                        <input type="number"
+                               class="form-input"
+                               id="activateMonths"
+                               name="months"
+                               value="1"
+                               min="1"
+                               max="12"
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn--primary" id="activateSubmitBtn">
+                        Активировать подписку
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== Toast Container ===== -->
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ===== External Scripts ===== -->
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/utils.js"></script>
+
+    <!-- ===== Admin Panel Logic ===== -->
+    <script>
+    (function () {
+        'use strict';
+
+        /* -------------------------------------------------------
+         * Constants & Helpers
+         * ------------------------------------------------------- */
+        var API_BASE = '/api';
+        var TOKEN_KEY = 'token';
+        var USER_KEY = 'user';
+
+        function getToken() {
+            return localStorage.getItem(TOKEN_KEY) || '';
+        }
+
+        function getStoredUser() {
+            try {
+                return JSON.parse(localStorage.getItem(USER_KEY)) || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function clearAuth() {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+        }
+
+        function redirectToLogin() {
+            window.location.href = '/static/login.html';
+        }
+
+        /**
+         * Authenticated fetch wrapper.
+         * Automatically attaches the Bearer token and handles 401/403 redirects.
+         */
+        function apiFetch(path, options) {
+            options = options || {};
+            var headers = options.headers || {};
+            headers['Authorization'] = 'Bearer ' + getToken();
+            if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(options.body);
+            }
+            options.headers = headers;
+
+            return fetch(API_BASE + path, options).then(function (res) {
+                if (res.status === 401 || res.status === 403) {
+                    clearAuth();
+                    redirectToLogin();
+                    return Promise.reject(new Error('Unauthorized'));
+                }
+                return res;
+            });
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined) return '--';
+            return Number(value).toLocaleString('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }) + ' \u20BD';
+        }
+
+        function formatNumber(value) {
+            if (value === null || value === undefined) return '--';
+            return Number(value).toLocaleString('ru-RU');
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '--';
+            var d = new Date(isoString);
+            var day = String(d.getDate()).padStart(2, '0');
+            var month = String(d.getMonth() + 1).padStart(2, '0');
+            var year = d.getFullYear();
+            var hours = String(d.getHours()).padStart(2, '0');
+            var minutes = String(d.getMinutes()).padStart(2, '0');
+            return day + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        /* -------------------------------------------------------
+         * Toast Notifications
+         * ------------------------------------------------------- */
+        var toastContainer = document.getElementById('toastContainer');
+
+        function showToast(message, type) {
+            type = type || 'info';
+            var toast = document.createElement('div');
+            toast.className = 'toast toast--' + type;
+            toast.setAttribute('role', 'alert');
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(function () {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, 4000);
+        }
+
+        /* -------------------------------------------------------
+         * Auth Guard
+         * ------------------------------------------------------- */
+        function checkAuth() {
+            var token = getToken();
+            if (!token) {
+                redirectToLogin();
+                return false;
+            }
+
+            var storedUser = getStoredUser();
+            if (storedUser && !storedUser.is_admin) {
+                redirectToLogin();
+                return false;
+            }
+
+            // Verify with server
+            apiFetch('/users/me').then(function (res) {
+                if (!res.ok) {
+                    clearAuth();
+                    redirectToLogin();
+                    return;
+                }
+                return res.json();
+            }).then(function (data) {
+                if (!data) return;
+                if (!data.is_admin) {
+                    clearAuth();
+                    redirectToLogin();
+                    return;
+                }
+                // Update header
+                var emailEl = document.getElementById('adminEmail');
+                if (emailEl) emailEl.textContent = data.email;
+            }).catch(function () {
+                // Network error -- don't redirect, let the page work with cached data
+            });
+
+            // Show cached email if available
+            if (storedUser && storedUser.email) {
+                var emailEl = document.getElementById('adminEmail');
+                if (emailEl) emailEl.textContent = storedUser.email;
+            }
+
+            return true;
+        }
+
+        /* -------------------------------------------------------
+         * Tab Navigation
+         * ------------------------------------------------------- */
+        var tabs = document.querySelectorAll('.admin-tabs__item');
+        var sections = document.querySelectorAll('.admin-section');
+
+        function switchTab(tabName) {
+            tabs.forEach(function (tab) {
+                var isActive = tab.getAttribute('data-tab') === tabName;
+                tab.classList.toggle('admin-tabs__item--active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            sections.forEach(function (section) {
+                var sectionId = 'section-' + tabName;
+                var isActive = section.id === sectionId;
+                section.classList.toggle('admin-section--active', isActive);
+                if (isActive) {
+                    section.removeAttribute('hidden');
+                } else {
+                    section.setAttribute('hidden', '');
+                }
+            });
+
+            // Load data for the newly selected tab
+            if (tabName === 'dashboard' || tabName === 'finance') {
+                loadStats();
+            } else if (tabName === 'users') {
+                if (!usersLoaded) {
+                    loadUsers(1, '');
+                }
+            }
+        }
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                switchTab(tab.getAttribute('data-tab'));
+            });
+            tab.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    switchTab(tab.getAttribute('data-tab'));
+                }
+            });
+        });
+
+        /* -------------------------------------------------------
+         * Dashboard: Load Stats
+         * ------------------------------------------------------- */
+        var statsData = null;
+
+        function loadStats() {
+            apiFetch('/admin/stats').then(function (res) {
+                if (!res.ok) throw new Error('Failed to load stats');
+                return res.json();
+            }).then(function (data) {
+                statsData = data;
+                renderStats(data);
+            }).catch(function (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Не удалось загрузить статистику', 'error');
+                }
+            });
+        }
+
+        function renderStats(data) {
+            // Dashboard metrics
+            document.getElementById('metricTotalUsers').textContent = formatNumber(data.total_users);
+            document.getElementById('metricPaidUsers').textContent = formatNumber(data.total_paid_users);
+            document.getElementById('metricRevenue').textContent = formatCurrency(data.total_revenue);
+            document.getElementById('metricCommAccrued').textContent = formatCurrency(data.total_commissions_accrued);
+            document.getElementById('metricCommPaid').textContent = formatCurrency(data.total_commissions_paid);
+            document.getElementById('metricLeaderPool').textContent = formatCurrency(data.leader_pool_current_month);
+
+            // Conversion rate
+            var rateEl = document.getElementById('metricPaidRate');
+            if (data.total_users > 0) {
+                var rate = ((data.total_paid_users / data.total_users) * 100).toFixed(1);
+                rateEl.textContent = rate + '% от общего числа';
+            } else {
+                rateEl.textContent = '';
+            }
+
+            // Plans breakdown
+            var plansList = document.getElementById('plansList');
+            var planMap = data.users_by_plan || {};
+            var planKeys = Object.keys(planMap);
+            if (planKeys.length === 0) {
+                plansList.innerHTML = '<span style="color:#64748b;font-size:0.8125rem;">Нет данных о тарифах</span>';
+            } else {
+                var html = '';
+                planKeys.forEach(function (code) {
+                    html += '<div class="plan-badge">' +
+                        '<span class="plan-badge__name">' + escapeHtml(code) + '</span>' +
+                        '<span class="plan-badge__count">' + formatNumber(planMap[code]) + '</span>' +
+                        '</div>';
+                });
+                plansList.innerHTML = html;
+            }
+
+            // Finance section
+            document.getElementById('finRevenue').textContent = formatCurrency(data.total_revenue);
+            document.getElementById('finPaidUsers').textContent = formatNumber(data.total_paid_users);
+            document.getElementById('finCommAccrued').textContent = formatCurrency(data.total_commissions_accrued);
+            document.getElementById('finCommPaid').textContent = formatCurrency(data.total_commissions_paid);
+            document.getElementById('finLeaderPool').textContent = formatCurrency(data.leader_pool_current_month);
+
+            var pending = (data.total_commissions_accrued || 0) - (data.total_commissions_paid || 0);
+            document.getElementById('finCommPending').textContent = formatCurrency(pending);
+
+            // Conversion
+            var convEl = document.getElementById('finConversion');
+            if (data.total_users > 0) {
+                convEl.textContent = ((data.total_paid_users / data.total_users) * 100).toFixed(1) + '%';
+            } else {
+                convEl.textContent = '0%';
+            }
+        }
+
+        /* -------------------------------------------------------
+         * Users: Load & Render
+         * ------------------------------------------------------- */
+        var usersLoaded = false;
+        var currentPage = 1;
+        var currentSearch = '';
+        var perPage = 50;
+
+        function loadUsers(page, search) {
+            page = page || 1;
+            search = (typeof search === 'string') ? search : currentSearch;
+            currentPage = page;
+            currentSearch = search;
+
+            var tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="7"><div class="loading-overlay"><div class="loading-spinner"></div><span>Загрузка...</span></div></td></tr>';
+
+            var url = '/admin/users?page=' + page + '&per_page=' + perPage;
+            if (search) {
+                url += '&search=' + encodeURIComponent(search);
+            }
+
+            apiFetch(url).then(function (res) {
+                if (!res.ok) throw new Error('Failed to load users');
+                return res.json();
+            }).then(function (data) {
+                usersLoaded = true;
+                renderUsersTable(data.users);
+                renderPagination(data.pagination);
+            }).catch(function (err) {
+                if (err.message !== 'Unauthorized') {
+                    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-state__text">Ошибка загрузки данных</span></div></td></tr>';
+                    showToast('Не удалось загрузить список пользователей', 'error');
+                }
+            });
+        }
+
+        function renderUsersTable(users) {
+            var tbody = document.getElementById('usersTableBody');
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-state__text">Пользователи не найдены</span></div></td></tr>';
+                return;
+            }
+
+            var html = '';
+            users.forEach(function (user) {
+                var partnerBadge = getPartnerBadge(user.partner_status, user.is_admin);
+                var planTag = user.subscription
+                    ? '<span class="plan-tag">' + escapeHtml(user.subscription) + '</span>'
+                    : '<span class="plan-tag plan-tag--empty">--</span>';
+
+                var fullName = '';
+                if (user.first_name) fullName += escapeHtml(user.first_name);
+                if (user.last_name) fullName += (fullName ? ' ' : '') + escapeHtml(user.last_name);
+                if (!fullName) fullName = '<span style="color:#64748b;">--</span>';
+
+                html += '<tr>' +
+                    '<td>' + escapeHtml(user.email) + '</td>' +
+                    '<td>' + fullName + '</td>' +
+                    '<td><code style="background:#0f172a;padding:0.125rem 0.375rem;border-radius:4px;font-size:0.75rem;color:#93c5fd;">' + escapeHtml(user.referral_code) + '</code></td>' +
+                    '<td>' + partnerBadge + '</td>' +
+                    '<td>' + planTag + '</td>' +
+                    '<td style="text-align:center;">' + formatNumber(user.referrals_count) + '</td>' +
+                    '<td>' + formatDate(user.created_at) + '</td>' +
+                    '</tr>';
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function getPartnerBadge(status, isAdmin) {
+            if (isAdmin) {
+                return '<span class="status-badge status-badge--admin">Admin</span>';
+            }
+            var statusMap = {
+                'none': { cls: 'status-badge--none', label: 'None' },
+                'bronze': { cls: 'status-badge--bronze', label: 'Bronze' },
+                'silver': { cls: 'status-badge--silver', label: 'Silver' },
+                'gold': { cls: 'status-badge--gold', label: 'Gold' },
+                'platinum': { cls: 'status-badge--platinum', label: 'Platinum' },
+            };
+            var info = statusMap[status] || statusMap['none'];
+            return '<span class="status-badge ' + info.cls + '">' + info.label + '</span>';
+        }
+
+        function renderPagination(pagination) {
+            var infoEl = document.getElementById('paginationInfo');
+            var controlsEl = document.getElementById('paginationControls');
+
+            if (!pagination || pagination.total_items === 0) {
+                infoEl.textContent = '';
+                controlsEl.innerHTML = '';
+                return;
+            }
+
+            var start = (pagination.page - 1) * pagination.per_page + 1;
+            var end = Math.min(pagination.page * pagination.per_page, pagination.total_items);
+            infoEl.textContent = start + '-' + end + ' из ' + formatNumber(pagination.total_items);
+
+            var totalPages = pagination.total_pages;
+            var currentP = pagination.page;
+            var html = '';
+
+            // Previous button
+            html += '<button class="pagination__btn" ' + (currentP <= 1 ? 'disabled' : '') +
+                ' data-page="' + (currentP - 1) + '" aria-label="Предыдущая страница">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>' +
+                '</button>';
+
+            // Page numbers
+            var pages = getPaginationPages(currentP, totalPages);
+            pages.forEach(function (p) {
+                if (p === '...') {
+                    html += '<span style="color:#64748b;padding:0 0.25rem;font-size:0.75rem;">...</span>';
+                } else {
+                    html += '<button class="pagination__btn' + (p === currentP ? ' pagination__btn--active' : '') +
+                        '" data-page="' + p + '">' + p + '</button>';
+                }
+            });
+
+            // Next button
+            html += '<button class="pagination__btn" ' + (currentP >= totalPages ? 'disabled' : '') +
+                ' data-page="' + (currentP + 1) + '" aria-label="Следующая страница">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' +
+                '</button>';
+
+            controlsEl.innerHTML = html;
+
+            // Attach events
+            controlsEl.querySelectorAll('.pagination__btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var page = parseInt(btn.getAttribute('data-page'), 10);
+                    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+                        loadUsers(page, currentSearch);
+                    }
+                });
+            });
+        }
+
+        function getPaginationPages(current, total) {
+            if (total <= 7) {
+                var arr = [];
+                for (var i = 1; i <= total; i++) arr.push(i);
+                return arr;
+            }
+
+            var pages = [];
+            pages.push(1);
+
+            if (current > 3) {
+                pages.push('...');
+            }
+
+            var rangeStart = Math.max(2, current - 1);
+            var rangeEnd = Math.min(total - 1, current + 1);
+
+            for (var j = rangeStart; j <= rangeEnd; j++) {
+                pages.push(j);
+            }
+
+            if (current < total - 2) {
+                pages.push('...');
+            }
+
+            pages.push(total);
+
+            return pages;
+        }
+
+        // Search debounce
+        var searchTimer = null;
+        var searchInput = document.getElementById('userSearch');
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                loadUsers(1, searchInput.value.trim());
+            }, 400);
+        });
+
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimer);
+                loadUsers(1, searchInput.value.trim());
+            }
+        });
+
+        // Refresh button
+        document.getElementById('refreshUsersBtn').addEventListener('click', function () {
+            loadUsers(currentPage, currentSearch);
+        });
+
+        /* -------------------------------------------------------
+         * Test Activation
+         * ------------------------------------------------------- */
+        var activationForm = document.getElementById('testActivationForm');
+
+        activationForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var email = document.getElementById('activateEmail').value.trim();
+            var planCode = document.getElementById('activatePlan').value;
+            var months = parseInt(document.getElementById('activateMonths').value, 10);
+
+            if (!email) {
+                showToast('Укажите email пользователя', 'error');
+                return;
+            }
+            if (!planCode) {
+                showToast('Выберите тарифный план', 'error');
+                return;
+            }
+            if (!months || months < 1 || months > 12) {
+                showToast('Укажите количество месяцев (1-12)', 'error');
+                return;
+            }
+
+            var submitBtn = document.getElementById('activateSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Активация...';
+
+            apiFetch('/admin/activate-test', {
+                method: 'POST',
+                body: {
+                    email: email,
+                    plan_code: planCode,
+                    months: months,
+                },
+            }).then(function (res) {
+                return res.json().then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            }).then(function (result) {
+                if (result.ok) {
+                    showToast('Подписка активирована для ' + email, 'success');
+                    activationForm.reset();
+                    // Refresh stats
+                    loadStats();
+                } else {
+                    var detail = result.data.detail || 'Неизвестная ошибка';
+                    showToast('Ошибка: ' + detail, 'error');
+                }
+            }).catch(function (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Сетевая ошибка при активации', 'error');
+                }
+            }).finally(function () {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Активировать подписку';
+            });
+        });
+
+        // Also load available plans dynamically if the endpoint exists
+        function loadPlans() {
+            apiFetch('/subscriptions/plans').then(function (res) {
+                if (!res.ok) return;
+                return res.json();
+            }).then(function (data) {
+                if (!data || !data.plans || data.plans.length === 0) return;
+                var select = document.getElementById('activatePlan');
+                // Clear existing options except the placeholder
+                var placeholder = select.querySelector('option[disabled]');
+                select.innerHTML = '';
+                if (placeholder) select.appendChild(placeholder);
+
+                data.plans.forEach(function (plan) {
+                    var opt = document.createElement('option');
+                    opt.value = plan.code;
+                    opt.textContent = plan.name + ' (' + formatCurrency(plan.price_monthly) + '/мес)';
+                    select.appendChild(opt);
+                });
+            }).catch(function () {
+                // Plans endpoint unavailable -- keep hardcoded options
+            });
+        }
+
+        /* -------------------------------------------------------
+         * Logout
+         * ------------------------------------------------------- */
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+            clearAuth();
+            redirectToLogin();
+        });
+
+        /* -------------------------------------------------------
+         * Initialize
+         * ------------------------------------------------------- */
+        function init() {
+            if (!checkAuth()) return;
+            loadStats();
+            loadPlans();
+        }
+
+        // Run when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>
