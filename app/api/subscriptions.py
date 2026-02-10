@@ -1,11 +1,19 @@
+"""
+Subscription endpoints — plans, current subscription, payment creation, test activation.
+"""
+
+from decimal import Decimal
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
-from app.models.subscription import SubscriptionPlan, UserSubscription
+from app.models.subscription import PaymentTransaction, SubscriptionPlan, UserSubscription
 from app.models.user import User
 from app.schemas.subscription import ActivateTestRequest, CreatePaymentRequest
 from app.services.auth_service import get_current_user
+from app.services.payment_service import build_receipt_items, generate_payment_url
 from app.services.subscription_service import activate_subscription_test, get_active_subscription
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -74,31 +82,100 @@ def create_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Stub for payment creation. Robokassa integration will be added later."""
-    plan = db.query(SubscriptionPlan).filter(
-        SubscriptionPlan.code == body.plan_code,
-        SubscriptionPlan.is_active.is_(True),
-    ).first()
+    """
+    Create a payment and return the Robokassa payment URL.
 
+    The user should be redirected to the returned URL to complete payment.
+    After payment, Robokassa calls /api/payments/result to confirm.
+    """
+    # --- Validate plan ---
+    plan = (
+        db.query(SubscriptionPlan)
+        .filter(
+            SubscriptionPlan.code == body.plan_code,
+            SubscriptionPlan.is_active.is_(True),
+        )
+        .first()
+    )
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Plan not found",
+            detail="Тариф не найден",
         )
 
     if body.billing_period not in ("monthly", "yearly"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="billing_period must be 'monthly' or 'yearly'",
+            detail="billing_period должен быть 'monthly' или 'yearly'",
         )
 
-    amount = float(plan.price_monthly) if body.billing_period == "monthly" else float(plan.price_yearly)
+    # --- Calculate amount ---
+    if body.billing_period == "yearly":
+        amount = plan.price_yearly
+        months_count = 12
+    else:
+        amount = plan.price_monthly
+        months_count = 1
+
+    # --- Check Robokassa config ---
+    if not settings.ROBOKASSA_MERCHANT_LOGIN or not settings.ROBOKASSA_PASSWORD_1:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Платёжная система не настроена. Используйте /activate-test для тестирования.",
+        )
+
+    # --- Cancel any existing pending payments for this user ---
+    pending_transactions = (
+        db.query(PaymentTransaction)
+        .filter(
+            PaymentTransaction.user_id == current_user.id,
+            PaymentTransaction.status == "pending",
+        )
+        .all()
+    )
+    for pt in pending_transactions:
+        pt.status = "cancelled"
+    db.flush()
+
+    # --- Create payment transaction ---
+    transaction = PaymentTransaction(
+        user_id=current_user.id,
+        amount=Decimal(str(amount)),
+        currency="RUB",
+        billing_period=body.billing_period,
+        months_count=months_count,
+        plan_code=plan.code,
+        payment_system="robokassa",
+        status="pending",
+    )
+    db.add(transaction)
+    db.flush()  # This generates the invoice_number via the sequence
+
+    # --- Build receipt items for 54-FZ ---
+    receipt_items = build_receipt_items(plan.name, Decimal(str(amount)), months_count)
+
+    # --- Generate Robokassa URL ---
+    period_label = "год" if body.billing_period == "yearly" else "мес"
+    description = f"AI Community Club: {plan.name} ({period_label})"
+
+    payment_url = generate_payment_url(
+        amount=Decimal(str(amount)),
+        invoice_id=transaction.invoice_number,
+        description=description,
+        email=current_user.email,
+        receipt_items=receipt_items,
+    )
+
+    db.commit()
 
     return {
-        "message": "Payment system not yet connected. Use /activate-test for testing.",
-        "plan": plan.code,
-        "amount": amount,
+        "payment_url": payment_url,
+        "invoice_number": transaction.invoice_number,
+        "transaction_id": str(transaction.id),
+        "amount": float(amount),
         "currency": "RUB",
+        "billing_period": body.billing_period,
+        "plan": plan.code,
     }
 
 
@@ -109,21 +186,24 @@ def activate_test(
     db: Session = Depends(get_db),
 ):
     """Test activation of a subscription without payment."""
-    plan = db.query(SubscriptionPlan).filter(
-        SubscriptionPlan.code == body.plan_code,
-        SubscriptionPlan.is_active.is_(True),
-    ).first()
-
+    plan = (
+        db.query(SubscriptionPlan)
+        .filter(
+            SubscriptionPlan.code == body.plan_code,
+            SubscriptionPlan.is_active.is_(True),
+        )
+        .first()
+    )
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Plan not found",
+            detail="Тариф не найден",
         )
 
     if body.months < 1 or body.months > 12:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="months must be between 1 and 12",
+            detail="months должно быть от 1 до 12",
         )
 
     result = activate_subscription_test(db, current_user, plan, body.months)
