@@ -4,11 +4,1318 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Community Club - Личный кабинет</title>
-    <link rel="stylesheet" href="/static/css/variables.css">
-    <link rel="stylesheet" href="/static/css/base.css">
-    <link rel="stylesheet" href="/static/css/components.css">
-    <link rel="stylesheet" href="/static/css/animations.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        /* ===== CSS Reset & Base ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --bg-card-hover: rgba(51, 65, 85, 0.6);
+            --gradient-blue: #2563eb;
+            --gradient-purple: #7c3aed;
+            --gradient-main: linear-gradient(135deg, #2563eb, #7c3aed);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(148, 163, 184, 0.12);
+            --border-focus: #2563eb;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: 0.2s ease;
+            --sidebar-width: 260px;
+            --header-height: 64px;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        a:hover {
+            color: var(--gradient-purple);
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+            font-size: inherit;
+            color: inherit;
+        }
+
+        input, textarea, select {
+            font-family: inherit;
+            font-size: inherit;
+            color: var(--text-primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* ===== Layout ===== */
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #fff;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-text {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            margin: 0.125rem 0.5rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sidebar-nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav-item.active {
+            background: rgba(37, 99, 235, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-nav-item .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav-item .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-user-email {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-logout svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ===== Mobile Sidebar Toggle ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 98;
+        }
+
+        .mobile-menu-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            transition: background var(--transition);
+        }
+
+        .mobile-menu-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .mobile-header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ===== Section Panels ===== */
+        .section-panel {
+            display: none;
+        }
+
+        .section-panel.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-gradient {
+            background: var(--gradient-main);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .card-title {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-gradient .card-title {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .card-footer {
+            margin-top: 0.75rem;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .card-gradient .card-footer {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== Stats Grid ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .stat-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .stat-card-icon.yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .stat-card-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+        .stat-card-icon.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+
+        .stat-card-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.375rem;
+            font-weight: 700;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn-primary {
+            background: var(--gradient-main);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(51, 65, 85, 0.8);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== Referral Link Box ===== */
+        .referral-link-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .referral-link-box label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .referral-link-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .referral-link-input-group input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .referral-link-input-group input:focus {
+            border-color: var(--border-focus);
+        }
+
+        .copy-feedback {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            margin-top: 0.375rem;
+            min-height: 1rem;
+        }
+
+        /* ===== Tables ===== */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .table-header-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        .table-filters {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-filter-select {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.375rem 0.625rem;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .table-filter-select:focus {
+            border-color: var(--border-focus);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            min-width: 600px;
+        }
+
+        .data-table th {
+            padding: 0.75rem 1.25rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(15, 23, 42, 0.5);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.04);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-empty {
+            padding: 3rem 1.25rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .table-footer-total {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pagination-btn {
+            padding: 0.375rem 0.625rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .pagination-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.1875rem 0.5rem;
+            border-radius: 100px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-active { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-inactive { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .badge-paid { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-accrued { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+
+        .badge-none { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+        .badge-bronze { background: rgba(205, 127, 50, 0.15); color: #cd7f32; }
+        .badge-silver { background: rgba(192, 192, 192, 0.15); color: #c0c0c0; }
+        .badge-gold { background: rgba(255, 215, 0, 0.15); color: #ffd700; }
+        .badge-platinum { background: rgba(229, 228, 226, 0.15); color: #e5e4e2; }
+
+        /* ===== Tabs ===== */
+        .tabs {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== Forms ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .form-input:focus {
+            border-color: var(--border-focus);
+        }
+
+        .form-input:read-only {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-message {
+            grid-column: 1 / -1;
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8125rem;
+            display: none;
+        }
+
+        .form-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .form-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* ===== Profile Section Extras ===== */
+        .profile-header-card {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar-lg {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .profile-info h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .profile-info p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .referrer-block {
+            margin-top: 1.5rem;
+        }
+
+        .referrer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .referrer-card h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .referrer-info {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .set-referrer-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .set-referrer-form .form-group {
+            flex: 1;
+        }
+
+        /* ===== Subscription Plans Grid ===== */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .plan-card.current {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 1px var(--accent-blue);
+        }
+
+        .plan-card.current::after {
+            content: 'Текущий';
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.1875rem 0.5rem;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        .plan-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-description {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-price span {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .plan-yearly-note {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            flex: 1;
+            margin-bottom: 1.25rem;
+        }
+
+        .plan-features li {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+        }
+
+        .plan-features li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.625rem;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ===== Overview Welcome ===== */
+        .welcome-card {
+            background: var(--gradient-main);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .welcome-card h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.375rem;
+            position: relative;
+        }
+
+        .welcome-card p {
+            font-size: 0.9375rem;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+        }
+
+        .welcome-sub-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+            color: #fff;
+            position: relative;
+        }
+
+        /* ===== Commission Breakdown ===== */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .breakdown-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+        }
+
+        .breakdown-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.25rem;
+        }
+
+        .breakdown-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        /* ===== Current Sub Card ===== */
+        .current-sub-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .current-sub-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .sub-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .sub-detail-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.125rem;
+        }
+
+        .sub-detail-item span {
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        /* ===== Loading State ===== */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ===== Toast Notifications ===== */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.875rem 1.25rem;
+            font-size: 0.8125rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: toast-in 0.3s ease;
+            max-width: 400px;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: var(--header-height);
+            }
+
+            .page-container {
+                padding: 1.5rem 1rem 3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .breakdown-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .referral-link-input-group {
+                flex-direction: column;
+            }
+
+            .welcome-card {
+                padding: 1.5rem;
+            }
+
+            .welcome-card h1 {
+                font-size: 1.25rem;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .set-referrer-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .plan-actions {
+                flex-direction: column;
+            }
+
+            .sub-detail-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .breakdown-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                width: 100%;
+            }
+
+            .tab-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .sub-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Toast Container -->
@@ -16,7 +1323,7 @@
 
     <!-- Mobile Header -->
     <header class="mobile-header">
-        <button class="mobile-menu-btn sidebar-toggle" id="mobileMenuBtn" type="button" aria-label="Открыть меню">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Открыть меню">
             <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
         <span class="mobile-header-title">AI Community Club</span>
@@ -26,42 +1333,40 @@
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="dashboard">
+    <div class="dashboard-layout">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar__header">
-                <div class="sidebar__logo">
-                    <span class="sidebar__logo-bracket">[</span> AI Community Club <span class="sidebar__logo-bracket">]</span>
-                </div>
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-logo">AI</div>
+                <span class="sidebar-brand-text">AI Community Club</span>
             </div>
 
-            <nav class="sidebar__nav">
-                <div class="sidebar__section-label">Навигация</div>
-                <div class="sidebar__link sidebar-nav-item active" data-section="overview">
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-item active" data-section="overview">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </span>
                     <span>Обзор</span>
                 </div>
-                <div class="sidebar__link sidebar-nav-item" data-section="team">
+                <div class="sidebar-nav-item" data-section="team">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </span>
                     <span>Моя команда</span>
                 </div>
-                <div class="sidebar__link sidebar-nav-item" data-section="commissions">
+                <div class="sidebar-nav-item" data-section="commissions">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     </span>
                     <span>Мои комиссии</span>
                 </div>
-                <div class="sidebar__link sidebar-nav-item" data-section="profile">
+                <div class="sidebar-nav-item" data-section="profile">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </span>
                     <span>Профиль</span>
                 </div>
-                <div class="sidebar__link sidebar-nav-item" data-section="subscription">
+                <div class="sidebar-nav-item" data-section="subscription">
                     <span class="nav-icon">
                         <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                     </span>
@@ -69,15 +1374,15 @@
                 </div>
             </nav>
 
-            <div class="sidebar__footer">
-                <div class="sidebar__user">
-                    <div class="sidebar__avatar" id="sidebarAvatar">--</div>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar" id="sidebarAvatar">--</div>
                     <div class="sidebar-user-info">
-                        <div class="sidebar__user-name" id="sidebarUserName">Загрузка...</div>
-                        <div class="sidebar__user-email" id="sidebarUserEmail">...</div>
+                        <div class="sidebar-user-name" id="sidebarUserName">Загрузка...</div>
+                        <div class="sidebar-user-email" id="sidebarUserEmail">...</div>
                     </div>
                 </div>
-                <button class="sidebar__logout btn-logout" id="logoutBtn" type="button">
+                <button class="btn-logout" id="logoutBtn" type="button">
                     <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     <span>Выйти</span>
                 </button>
@@ -85,11 +1390,11 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="dashboard-main">
-            <div class="dashboard-main__inner">
+        <main class="main-content">
+            <div class="page-container">
 
                 <!-- ==================== OVERVIEW ==================== -->
-                <section class="dashboard-section section-panel active" id="sectionOverview">
+                <section class="section-panel active" id="sectionOverview">
                     <div class="welcome-card">
                         <h1 id="welcomeTitle">Добро пожаловать!</h1>
                         <p>Ваш личный кабинет партнёра AI Community Club</p>
@@ -131,12 +1436,7 @@
                     </div>
 
                     <div class="referral-link-box">
-                        <div class="referral-link-box__header">
-                            <span class="referral-link-box__dot"></span>
-                            <span class="referral-link-box__dot"></span>
-                            <span class="referral-link-box__dot"></span>
-                            <span class="referral-link-box__title">Ваша реферальная ссылка</span>
-                        </div>
+                        <label>Ваша реферальная ссылка</label>
                         <div class="referral-link-input-group">
                             <input type="text" id="referralLinkInput" readonly value="Загрузка...">
                             <button class="btn btn-primary btn-sm" id="copyLinkBtn" type="button">
@@ -149,7 +1449,7 @@
                 </section>
 
                 <!-- ==================== TEAM ==================== -->
-                <section class="dashboard-section section-panel" id="sectionTeam">
+                <section class="section-panel" id="sectionTeam">
                     <div class="section-header">
                         <h2 class="section-title">Моя команда</h2>
                         <p class="section-subtitle">Партнёры, зарегистрированные по вашей ссылке</p>
@@ -275,7 +1575,7 @@
                 </section>
 
                 <!-- ==================== COMMISSIONS ==================== -->
-                <section class="dashboard-section section-panel" id="sectionCommissions">
+                <section class="section-panel" id="sectionCommissions">
                     <div class="section-header">
                         <h2 class="section-title">Мои комиссии</h2>
                         <p class="section-subtitle">Детализация партнёрских вознаграждений</p>
@@ -362,7 +1662,7 @@
                 </section>
 
                 <!-- ==================== PROFILE ==================== -->
-                <section class="dashboard-section section-panel" id="sectionProfile">
+                <section class="section-panel" id="sectionProfile">
                     <div class="section-header">
                         <h2 class="section-title">Профиль</h2>
                         <p class="section-subtitle">Управление вашими личными данными</p>
@@ -432,7 +1732,7 @@
                 </section>
 
                 <!-- ==================== SUBSCRIPTION ==================== -->
-                <section class="dashboard-section section-panel" id="sectionSubscription">
+                <section class="section-panel" id="sectionSubscription">
                     <div class="section-header">
                         <h2 class="section-title">Подписка</h2>
                         <p class="section-subtitle">Управление вашей подпиской и тарифным планом</p>
@@ -481,7 +1781,6 @@
     <script src="/static/js/api.js"></script>
     <script src="/static/js/utils.js"></script>
     <script src="/static/js/dashboard.js"></script>
-    <script src="/static/js/animations.js"></script>
     <script>
     (function() {
         'use strict';
@@ -1197,12 +2496,16 @@
                         '</ul>';
                 }
 
-                html += '<div class="plan-actions">';
+                html += '<div class="plan-actions" style="flex-direction:column;gap:0.5rem;">';
                 if (isCurrent) {
                     html += '<button class="btn btn-secondary btn-sm btn-block" disabled>Текущий тариф</button>';
                 } else {
                     html += '<button class="btn btn-primary btn-sm btn-block" onclick="window.__selectPlan(\'' + plan.code + '\',\'monthly\')">' +
-                        (currentPlanCode ? 'Сменить тариф' : 'Выбрать') + '</button>';
+                        'Оплатить за месяц (' + formatMoney(plan.price_monthly) + ')</button>';
+                    if (plan.price_yearly > 0) {
+                        html += '<button class="btn btn-secondary btn-sm btn-block" onclick="window.__selectPlan(\'' + plan.code + '\',\'yearly\')">' +
+                            'Оплатить за год (' + formatMoney(plan.price_yearly) + ')</button>';
+                    }
                 }
                 html += '</div></div>';
             });
@@ -1210,13 +2513,25 @@
         }
 
         window.__selectPlan = function(planCode, period) {
+            document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = true; });
+            showToast('Создаём платёж...', 'info');
+
             apiFetch('/api/subscriptions/create-payment', {
                 method: 'POST',
                 body: JSON.stringify({ plan_code: planCode, billing_period: period })
             }).then(function(data) {
-                showToast(data.message || 'Запрос на оплату создан', 'info');
+                if (data.payment_url) {
+                    showToast('Переходим на страницу оплаты...', 'success');
+                    setTimeout(function() {
+                        window.location.href = data.payment_url;
+                    }, 500);
+                } else {
+                    showToast(data.message || 'Платёжная система не настроена', 'error');
+                    document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = false; });
+                }
             }).catch(function(err) {
                 showToast('Ошибка: ' + err.message, 'error');
+                document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = false; });
             });
         };
 
