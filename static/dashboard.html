@@ -2496,12 +2496,16 @@
                         '</ul>';
                 }
 
-                html += '<div class="plan-actions">';
+                html += '<div class="plan-actions" style="flex-direction:column;gap:0.5rem;">';
                 if (isCurrent) {
                     html += '<button class="btn btn-secondary btn-sm btn-block" disabled>Текущий тариф</button>';
                 } else {
                     html += '<button class="btn btn-primary btn-sm btn-block" onclick="window.__selectPlan(\'' + plan.code + '\',\'monthly\')">' +
-                        (currentPlanCode ? 'Сменить тариф' : 'Выбрать') + '</button>';
+                        'Оплатить за месяц (' + formatMoney(plan.price_monthly) + ')</button>';
+                    if (plan.price_yearly > 0) {
+                        html += '<button class="btn btn-secondary btn-sm btn-block" onclick="window.__selectPlan(\'' + plan.code + '\',\'yearly\')">' +
+                            'Оплатить за год (' + formatMoney(plan.price_yearly) + ')</button>';
+                    }
                 }
                 html += '</div></div>';
             });
@@ -2509,13 +2513,25 @@
         }
 
         window.__selectPlan = function(planCode, period) {
+            document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = true; });
+            showToast('Создаём платёж...', 'info');
+
             apiFetch('/api/subscriptions/create-payment', {
                 method: 'POST',
                 body: JSON.stringify({ plan_code: planCode, billing_period: period })
             }).then(function(data) {
-                showToast(data.message || 'Запрос на оплату создан', 'info');
+                if (data.payment_url) {
+                    showToast('Переходим на страницу оплаты...', 'success');
+                    setTimeout(function() {
+                        window.location.href = data.payment_url;
+                    }, 500);
+                } else {
+                    showToast(data.message || 'Платёжная система не настроена', 'error');
+                    document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = false; });
+                }
             }).catch(function(err) {
                 showToast('Ошибка: ' + err.message, 'error');
+                document.querySelectorAll('.plan-actions button').forEach(function(b) { b.disabled = false; });
             });
         };
 
