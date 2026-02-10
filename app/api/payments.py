@@ -9,6 +9,7 @@ These endpoints handle:
 
 import logging
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -104,12 +105,21 @@ async def payment_result(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    # --- 4. Validate amount ---
-    expected_sum = f"{transaction.amount:.2f}"
-    if out_sum != expected_sum:
+    # --- 4. Validate amount (Decimal comparison, tolerant to trailing zeros) ---
+    try:
+        received_amount = Decimal(out_sum).quantize(Decimal("0.01"))
+        expected_amount = transaction.amount.quantize(Decimal("0.01"))
+    except (InvalidOperation, AttributeError) as e:
+        logger.error(f"Cannot parse amount for InvId={inv_id}: OutSum={out_sum}, error={e}")
+        return PlainTextResponse(
+            content="bad amount",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if received_amount != expected_amount:
         logger.error(
             f"Amount mismatch for InvId={inv_id}: "
-            f"expected={expected_sum}, received={out_sum}"
+            f"expected={expected_amount}, received={received_amount}"
         )
         return PlainTextResponse(
             content="bad amount",
