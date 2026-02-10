@@ -1,128 +1,210 @@
-import uuid
+"""
+Subscription endpoints — plans, current subscription, payment creation, test activation.
+"""
 
-from sqlalchemy import (
-    Column, String, Boolean, Integer, Text, DateTime, ForeignKey, Numeric, JSON,
-    Sequence,
-)
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from decimal import Decimal
 
-from app.database import Base
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
+from app.config import settings
+from app.database import get_db
+from app.models.subscription import PaymentTransaction, SubscriptionPlan, UserSubscription
+from app.models.user import User
+from app.schemas.subscription import ActivateTestRequest, CreatePaymentRequest
+from app.services.auth_service import get_current_user
+from app.services.payment_service import build_receipt_items, generate_payment_url
+from app.services.subscription_service import activate_subscription_test, get_active_subscription
 
-class SubscriptionPlan(Base):
-    """Subscription plans for the club."""
-    __tablename__ = "subscription_plans"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    code = Column(String(20), unique=True, nullable=False)
-    name = Column(String(50), nullable=False)
-    price_monthly = Column(Numeric(10, 2), nullable=False)
-    price_yearly = Column(Numeric(10, 2), nullable=False)
-    max_voicyfy_agents = Column(Integer, default=1)
-    max_chatforyou_access = Column(String(20), default="limited")
-    max_ai_admin_bots = Column(Integer, default=1)
-
-    # Commission rates (% of plan price)
-    commission_direct = Column(Numeric(5, 2), default=30.00)
-    commission_level2 = Column(Numeric(5, 2), default=15.00)
-    commission_retention = Column(Numeric(5, 2), default=10.00)
-    commission_leader_pool = Column(Numeric(5, 2), default=5.00)
-    owner_margin = Column(Numeric(5, 2), default=40.00)
-
-    description = Column(Text, nullable=True)
-    features = Column(JSON, nullable=True)
-    is_active = Column(Boolean, default=True)
-    sort_order = Column(Integer, default=0)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
 
-class UserSubscription(Base):
-    """Active user subscriptions."""
-    __tablename__ = "user_subscriptions"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    plan_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("subscription_plans.id"),
-        nullable=False,
+@router.get("/plans")
+def get_plans(db: Session = Depends(get_db)):
+    plans = (
+        db.query(SubscriptionPlan)
+        .filter(SubscriptionPlan.is_active.is_(True))
+        .order_by(SubscriptionPlan.sort_order)
+        .all()
     )
 
-    billing_period = Column(String(10), nullable=False)  # monthly, yearly
-    status = Column(String(20), default="active")  # active, cancelled, expired, trial
+    return {
+        "plans": [
+            {
+                "code": p.code,
+                "name": p.name,
+                "price_monthly": float(p.price_monthly),
+                "price_yearly": float(p.price_yearly),
+                "yearly_savings": float(p.price_monthly * 12 - p.price_yearly),
+                "features": p.features or [],
+                "max_voicyfy_agents": p.max_voicyfy_agents,
+                "max_chatforyou_access": p.max_chatforyou_access,
+                "max_ai_admin_bots": p.max_ai_admin_bots,
+                "description": p.description,
+            }
+            for p in plans
+        ]
+    }
 
-    started_at = Column(DateTime(timezone=True), nullable=False)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    cancelled_at = Column(DateTime(timezone=True), nullable=True)
 
-    consecutive_months = Column(Integer, default=1)
+@router.get("/my")
+def get_my_subscription(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    sub = get_active_subscription(db, current_user.id)
+    if not sub:
+        return {"has_subscription": False, "subscription": None}
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    from datetime import datetime, timezone
 
-    # Relationships
-    user = relationship("User", backref="subscriptions")
-    plan = relationship("SubscriptionPlan")
+    now = datetime.now(timezone.utc)
+    days_remaining = (sub.expires_at - now).days if sub.expires_at else 0
+
+    return {
+        "has_subscription": True,
+        "subscription": {
+            "plan_code": sub.plan.code,
+            "plan_name": sub.plan.name,
+            "status": sub.status,
+            "billing_period": sub.billing_period,
+            "started_at": sub.started_at.isoformat() if sub.started_at else None,
+            "expires_at": sub.expires_at.isoformat() if sub.expires_at else None,
+            "consecutive_months": sub.consecutive_months,
+            "days_remaining": max(0, days_remaining),
+        },
+    }
 
 
-# Sequence for unique integer invoice numbers required by Robokassa
-invoice_number_seq = Sequence("invoice_number_seq", start=1001)
+@router.post("/create-payment")
+def create_payment(
+    body: CreatePaymentRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a payment and return the Robokassa payment URL.
 
-
-class PaymentTransaction(Base):
-    """All payment transactions."""
-    __tablename__ = "payment_transactions"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
+    The user should be redirected to the returned URL to complete payment.
+    After payment, Robokassa calls /api/payments/result to confirm.
+    """
+    # --- Validate plan ---
+    plan = (
+        db.query(SubscriptionPlan)
+        .filter(
+            SubscriptionPlan.code == body.plan_code,
+            SubscriptionPlan.is_active.is_(True),
+        )
+        .first()
     )
-    subscription_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("user_subscriptions.id"),
-        nullable=True,
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Тариф не найден",
+        )
+
+    if body.billing_period not in ("monthly", "yearly"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="billing_period должен быть 'monthly' или 'yearly'",
+        )
+
+    # --- Calculate amount ---
+    if body.billing_period == "yearly":
+        amount = plan.price_yearly
+        months_count = 12
+    else:
+        amount = plan.price_monthly
+        months_count = 1
+
+    # --- Check Robokassa config ---
+    if not settings.ROBOKASSA_MERCHANT_LOGIN or not settings.ROBOKASSA_PASSWORD_1:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Платёжная система не настроена. Используйте /activate-test для тестирования.",
+        )
+
+    # --- Cancel any existing pending payments for this user ---
+    pending_transactions = (
+        db.query(PaymentTransaction)
+        .filter(
+            PaymentTransaction.user_id == current_user.id,
+            PaymentTransaction.status == "pending",
+        )
+        .all()
+    )
+    for pt in pending_transactions:
+        pt.status = "cancelled"
+    db.flush()
+
+    # --- Create payment transaction ---
+    transaction = PaymentTransaction(
+        user_id=current_user.id,
+        amount=Decimal(str(amount)),
+        currency="RUB",
+        billing_period=body.billing_period,
+        months_count=months_count,
+        plan_code=plan.code,
+        payment_system="robokassa",
+        status="pending",
+    )
+    db.add(transaction)
+    db.flush()  # This generates the invoice_number via the sequence
+
+    # --- Build receipt items for 54-FZ ---
+    receipt_items = build_receipt_items(plan.name, Decimal(str(amount)), months_count)
+
+    # --- Generate Robokassa URL ---
+    period_label = "год" if body.billing_period == "yearly" else "мес"
+    description = f"AI Community Club: {plan.name} ({period_label})"
+
+    payment_url = generate_payment_url(
+        amount=Decimal(str(amount)),
+        invoice_id=transaction.invoice_number,
+        description=description,
+        email=current_user.email,
+        receipt_items=receipt_items,
     )
 
-    # --- Robokassa-specific fields ---
-    invoice_number = Column(
-        Integer,
-        invoice_number_seq,
-        server_default=invoice_number_seq.next_value(),
-        unique=True,
-        nullable=False,
-        index=True,
+    db.commit()
+
+    return {
+        "payment_url": payment_url,
+        "invoice_number": transaction.invoice_number,
+        "transaction_id": str(transaction.id),
+        "amount": float(amount),
+        "currency": "RUB",
+        "billing_period": body.billing_period,
+        "plan": plan.code,
+    }
+
+
+@router.post("/activate-test")
+def activate_test(
+    body: ActivateTestRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Test activation of a subscription without payment."""
+    plan = (
+        db.query(SubscriptionPlan)
+        .filter(
+            SubscriptionPlan.code == body.plan_code,
+            SubscriptionPlan.is_active.is_(True),
+        )
+        .first()
     )
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Тариф не найден",
+        )
 
-    amount = Column(Numeric(10, 2), nullable=False)
-    currency = Column(String(3), default="RUB")
+    if body.months < 1 or body.months > 12:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="months должно быть от 1 до 12",
+        )
 
-    # Billing details
-    billing_period = Column(String(10), nullable=False, default="monthly")  # monthly, yearly
-    months_count = Column(Integer, nullable=False, default=1)  # 1 or 12
-    plan_code = Column(String(20), nullable=False, default="explorer")
-
-    payment_system = Column(String(50), default="robokassa")
-    external_payment_id = Column(String(100), nullable=True)
-
-    status = Column(String(20), default="pending")  # pending, success, failed, refunded
-
-    subscription_month_number = Column(Integer, default=1)
-
-    # Robokassa callback raw data for audit
-    callback_data = Column(JSON, nullable=True)
-
-    paid_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relationships
-    user = relationship("User", backref="payments")
+    result = activate_subscription_test(db, current_user, plan, body.months)
+    return result
